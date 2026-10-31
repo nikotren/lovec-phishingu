@@ -1,0 +1,13 @@
+node_modules
+dist
+dist-ssr
+*.local
+.DS_Store
+.vite
+
+# lokální nástroje a artefakty
+.wrangler
+.agents
+skills-lock.json
+.review_prod.png
+*.log

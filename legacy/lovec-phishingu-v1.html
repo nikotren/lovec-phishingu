@@ -1,0 +1,1004 @@
+<title>Lovec phishingu</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Figtree:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: jedna "plocha" s oknem poštovního klienta; titulka, briefing a výsledky jsou karty na stejné ploše. */
+:root{
+  --desk:#dbe4ec;--desk-2:#c9d5e0;--win:#ffffff;--win-2:#f2f5f8;--line:#dce3ea;
+  --ink:#13222e;--ink-2:#4f616e;--ink-3:#74858f;
+  --rail:#13304b;--rail-ink:#b9cde0;--rail-on:#ffffff;--rail-hi:#1f4569;
+  --flag:#c8441c;--on-flag:#ffffff;--ok:#0f7a58;--ok-bg:#dff2ea;--bad:#c4263f;--bad-bg:#fbe4e8;--warn:#8a5a00;--warn-bg:#fcefc9;
+  --mark:#fff0a8;--link:#1558b0;--shadow:0 1px 0 rgba(0,0,0,.04),0 18px 40px -16px rgba(19,34,46,.35);
+  --f-display:'Bricolage Grotesque',system-ui,sans-serif;--f-body:'Figtree',system-ui,sans-serif;--f-mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --desk:#0b131a;--desk-2:#12202b;--win:#15202a;--win-2:#1a2733;--line:#263645;
+  --ink:#e6eef5;--ink-2:#a6b7c4;--ink-3:#7a8c98;
+  --rail:#0c1a27;--rail-ink:#8fa8bd;--rail-on:#ffffff;--rail-hi:#17304a;
+  --flag:#ff7f50;--on-flag:#1d0c05;--ok:#47d6a0;--ok-bg:#12372c;--bad:#ff7088;--bad-bg:#40171f;--warn:#f1c24f;--warn-bg:#3b2f0e;
+  --mark:#6a5710;--link:#7db4ff;--shadow:0 18px 40px -16px rgba(0,0,0,.7);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --desk:#0b131a;--desk-2:#12202b;--win:#15202a;--win-2:#1a2733;--line:#263645;
+  --ink:#e6eef5;--ink-2:#a6b7c4;--ink-3:#7a8c98;
+  --rail:#0c1a27;--rail-ink:#8fa8bd;--rail-on:#ffffff;--rail-hi:#17304a;
+  --flag:#ff7f50;--on-flag:#1d0c05;--ok:#47d6a0;--ok-bg:#12372c;--bad:#ff7088;--bad-bg:#40171f;--warn:#f1c24f;--warn-bg:#3b2f0e;
+  --mark:#6a5710;--link:#7db4ff;--shadow:0 18px 40px -16px rgba(0,0,0,.7);color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{margin:0;background:var(--desk);background-image:radial-gradient(var(--desk-2) 1.2px,transparent 1.2px);background-size:22px 22px;color:var(--ink);font:400 15px/1.5 var(--f-body);
+  padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--link);outline-offset:2px}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;line-height:1.1}
+p{margin:0}
+code{font-family:var(--f-mono);font-size:.92em}
+.wrap{max-width:1240px;margin:0 auto}
+.ic{flex:none;vertical-align:-3px}
+
+/* buttons */
+.b{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:10px;border:1.5px solid var(--line);background:var(--win);font-weight:700;line-height:1.2;transition:transform .08s,background .15s}
+.b:active{transform:translateY(1px)}
+.b small{font-weight:500;opacity:.8;font-size:12px}
+.b[disabled]{opacity:.45;cursor:not-allowed}
+.b-flag{background:var(--flag);border-color:var(--flag);color:var(--on-flag)}
+.b-ok{border-color:var(--ok);color:var(--ok)}
+.b-ok:hover{background:var(--ok-bg)}
+.b-ghost:hover{background:var(--win-2)}
+.b-big{padding:14px 24px;font-size:17px;border-radius:12px}
+.linkbtn{background:none;border:0;color:var(--link);padding:2px 0;font-weight:500;text-decoration:underline;text-underline-offset:3px}
+
+/* card screens */
+.card{background:var(--win);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:clamp(20px,4vw,40px)}
+.eyebrow{font:500 12px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+.brand{display:flex;align-items:center;gap:10px;font:800 18px var(--f-display)}
+.logo{width:36px;height:36px;border-radius:10px;background:var(--rail);color:#fff;display:grid;place-items:center}
+.iconbtn{width:38px;height:38px;border-radius:10px;border:1.5px solid var(--line);background:var(--win);display:grid;place-items:center;color:var(--ink-2)}
+
+/* title */
+.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(20px,4vw,48px);align-items:center}
+.hero h1{font-size:clamp(44px,8vw,92px);font-weight:800;letter-spacing:-.03em;line-height:.92}
+.hero h1 em{font-style:normal;color:var(--flag)}
+.lead{font-size:18px;color:var(--ink-2);max-width:46ch;margin:18px 0 22px}
+.namebox{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.namebox input{flex:1 1 200px;min-width:0;padding:12px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--win-2)}
+.steps{display:grid;gap:8px;margin-top:22px;padding:0;list-style:none;color:var(--ink-2);font-size:14px}
+.steps li{display:flex;gap:10px;align-items:flex-start}
+.steps b{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--win-2);border:1px solid var(--line);font:500 12px var(--f-mono);color:var(--ink);flex:none}
+.pstats{display:flex;gap:18px;flex-wrap:wrap;margin-top:22px;padding-top:16px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-2)}
+.pstats b{display:block;font:800 22px var(--f-display);color:var(--ink)}
+.stack{position:relative;height:340px;max-width:440px;margin-inline:auto;width:100%}
+.mini{position:absolute;left:0;right:0;background:var(--win);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+.mini .f{font-weight:700;font-size:14px}.mini .s{color:var(--ink-2);font-size:13px}
+.mini .u{font:400 12px var(--f-mono);color:var(--bad);margin-top:6px;word-break:break-all}
+.mini:nth-child(1){top:0;transform:rotate(-3deg)}
+.mini:nth-child(2){top:92px;transform:rotate(2deg);left:18px;right:-6px}
+.mini:nth-child(3){top:196px;transform:rotate(-1.5deg);left:6px}
+.pill-st{position:absolute;right:12px;top:-12px;border:2.5px solid;border-radius:6px;padding:2px 10px;font:800 13px var(--f-display);letter-spacing:.08em;transform:rotate(6deg);background:var(--win)}
+.pill-st.p{color:var(--flag);border-color:var(--flag)}.pill-st.g{color:var(--ok);border-color:var(--ok)}
+
+/* brief */
+.brief{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:clamp(20px,4vw,40px)}
+.brief h2{font-size:clamp(30px,5vw,52px);font-weight:800;letter-spacing:-.02em;margin:8px 0 12px}
+.tip{background:var(--warn-bg);color:var(--ink);border-radius:12px;padding:14px 16px;margin:18px 0;border:1px solid var(--line)}
+.tip b{display:block;font:500 12px var(--f-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--warn);margin-bottom:4px}
+.rules{display:grid;gap:8px;list-style:none;padding:0;margin:0;font-size:14px}
+.rules li{display:flex;justify-content:space-between;gap:12px;padding:9px 12px;border-radius:10px;background:var(--win-2)}
+.rules span:last-child{font:500 13px var(--f-mono);white-space:nowrap}
+.pos{color:var(--ok)}.neg{color:var(--bad)}
+.dots{display:flex;gap:6px;margin:12px 0}
+.dots i{width:30px;height:6px;border-radius:3px;background:var(--line)}.dots i.on{background:var(--flag)}.dots i.done{background:var(--ok)}
+
+/* game window */
+.win{background:var(--win);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;height:clamp(560px,calc(100dvh - 40px),820px)}
+.hud{background:var(--rail);color:var(--rail-on);display:flex;align-items:center;gap:10px 14px;padding:10px 14px;flex-wrap:wrap}
+.hud .t{font:800 16px var(--f-display);margin-right:auto;display:flex;align-items:center;gap:10px;min-width:0}
+.hud .t span.sub{font:500 12px var(--f-mono);color:var(--rail-ink);letter-spacing:.04em}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--rail-hi);border-radius:8px;padding:5px 10px;font-size:13px;color:var(--rail-ink);white-space:nowrap}
+.chip b{color:var(--rail-on);font-weight:700;font-variant-numeric:tabular-nums}
+.hrt{color:var(--rail-hi);display:inline-flex}.hrt.on{color:#ff6b81}.hrt.on svg{fill:currentColor}
+.hrt.lost{animation:shake .4s}
+.hud .iconbtn{background:var(--rail-hi);border-color:transparent;color:var(--rail-ink);width:34px;height:34px}
+.client{flex:1;display:grid;grid-template-columns:190px 330px minmax(0,1fr);min-height:0}
+.rail{background:var(--rail);color:var(--rail-ink);padding:8px;display:flex;flex-direction:column;gap:2px;font-size:14px}
+.rail .f{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px}
+.rail .f.on{background:var(--rail-hi);color:var(--rail-on);font-weight:700}
+.rail .f em{margin-left:auto;font:500 12px var(--f-mono);font-style:normal}
+.rail .me{margin-top:auto;padding:10px;font:400 11px var(--f-mono);word-break:break-all;color:var(--rail-ink)}
+.list{border-right:1px solid var(--line);overflow:auto;background:var(--win)}
+.li{display:flex;gap:10px;width:100%;text-align:left;padding:12px;border:0;border-bottom:1px solid var(--line);background:none;position:relative}
+.li:hover{background:var(--win-2)}
+.li.sel{background:color-mix(in srgb,var(--link) 12%,var(--win))}
+.li.sel::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--link)}
+.av{width:38px;height:38px;border-radius:50%;flex:none;display:grid;place-items:center;font:700 13px var(--f-display);color:#fff;background:hsl(var(--h) 45% 38%)}
+.li .m{min-width:0;flex:1}
+.li .r1{display:flex;justify-content:space-between;gap:8px;font-size:14px}
+.li .r1 b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li .r1 time{font:400 11px var(--f-mono);color:var(--ink-3);flex:none}
+.li .sj{font-size:13px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li.unread .r1 b,.li.unread .sj{font-weight:700;color:var(--ink)}
+.li.unread .av::after{content:"";position:absolute;left:6px;top:12px;width:9px;height:9px;border-radius:50%;background:var(--link);border:2px solid var(--win)}
+.li .st{display:inline-flex;align-items:center;gap:4px;font:700 11px var(--f-body);margin-top:3px;padding:1px 7px;border-radius:99px}
+.st.good{background:var(--ok-bg);color:var(--ok)}.st.bad{background:var(--bad-bg);color:var(--bad)}.st.warn{background:var(--warn-bg);color:var(--warn)}.st.neu{background:var(--win-2);color:var(--ink-2)}
+.li.done{opacity:.8}
+.read{display:flex;flex-direction:column;min-width:0;min-height:0;position:relative;background:var(--win)}
+.rhead{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.rhead h2{font-size:20px;font-weight:700;letter-spacing:-.01em}
+.back-btn{display:none}
+.rbody{flex:1;overflow:auto;padding:16px 18px 20px;position:relative}
+.sender{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.sender .av{position:static}
+.sinfo{flex:1;min-width:0}
+.sname{background:none;border:0;padding:0;font-weight:700;font-size:15px;text-align:left;cursor:help;border-bottom:1px dotted var(--ink-3)}
+.sto{font-size:12px;color:var(--ink-3)}
+.hdrs{margin:12px 0 0;border:1px solid var(--line);border-radius:10px;background:var(--win-2);padding:4px;font-size:13px}
+.hrow{display:flex;gap:12px;align-items:baseline;padding:7px 10px;border-radius:7px;cursor:pointer}
+.hrow>span:first-child{width:76px;flex:none;color:var(--ink-3);font-size:12px}
+.hrow code{word-break:break-all}
+.auth-pass{color:var(--ok)}.auth-fail{color:var(--bad)}.auth-none{color:var(--ink-2)}
+.mail-body{margin-top:18px;font-size:15.5px;line-height:1.65;max-width:68ch}
+.mail-body p{margin:0 0 14px}
+.mail-body blockquote{margin:0 0 14px;padding:8px 12px;border-left:3px solid var(--line);color:var(--ink-3);font-size:13px}
+.mk{cursor:pointer;border-radius:4px;text-decoration:underline dotted var(--ink-3);text-underline-offset:4px;transition:background .15s}
+.mk:hover{background:color-mix(in srgb,var(--mark) 55%,transparent)}
+.mk.on{background:var(--mark);text-decoration:none;box-shadow:0 0 0 2px var(--mark)}
+.mk.hit{background:var(--ok-bg);color:var(--ok);text-decoration:none;box-shadow:0 0 0 2px var(--ok-bg);cursor:default}
+.mk.miss{outline:2px dashed var(--flag);outline-offset:2px;cursor:default;text-decoration:none}
+.mk.fine{background:var(--win-2);cursor:default;text-decoration:line-through}
+.lnk{color:var(--link);word-break:break-word}
+.lbtn{display:inline-block;background:var(--link);color:#fff;padding:10px 18px;border-radius:8px;font-weight:700;text-decoration:none;margin:2px 0}
+:root[data-theme="dark"] .lbtn{color:#07121e}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .lbtn{color:#07121e}}
+.lbtn.mk.on,.lbtn.mk.hit{color:var(--ink)}
+.qr{display:inline-flex;flex-direction:column;align-items:center;gap:6px;background:var(--win-2);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:12px;color:var(--ink-2)}
+.qr svg{width:132px;height:132px;border-radius:4px}
+.atts{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.att{display:inline-flex;align-items:center;gap:8px;padding:9px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--win-2);font-size:14px}
+.att small{color:var(--ink-3);font-family:var(--f-mono);font-size:11px}
+.att span{word-break:break-all;text-align:left}
+.ractions{border-top:1px solid var(--line);padding:12px 18px;background:var(--win-2)}
+.abtns{display:flex;gap:8px;flex-wrap:wrap}
+.hint{font-size:12px;color:var(--ink-3);margin-bottom:8px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.hint b{color:var(--ink);font-variant-numeric:tabular-nums}
+.empty{margin:auto;text-align:center;color:var(--ink-2);padding:30px;max-width:340px}
+.empty svg{color:var(--ink-3);margin-bottom:10px}
+.status{border-top:1px solid var(--line);background:var(--win-2);font:400 12px var(--f-mono);padding:5px 12px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:27px}
+.status.on{color:var(--ink);background:var(--warn-bg)}
+
+/* feedback */
+.fb{margin-top:22px;border:1.5px solid var(--line);border-radius:14px;overflow:hidden;background:var(--win)}
+.fb-h{display:flex;gap:12px;align-items:center;padding:14px 16px}
+.fb-h h3{font-size:19px;font-weight:700}
+.fb.good .fb-h{background:var(--ok-bg);color:var(--ok)}.fb.bad .fb-h{background:var(--bad-bg);color:var(--bad)}.fb.warn .fb-h{background:var(--warn-bg);color:var(--warn)}.fb.neu .fb-h{background:var(--win-2)}
+.fb-b{padding:14px 16px;display:grid;gap:14px}
+.ledger{display:grid;gap:3px;font-size:14px}
+.ledger div{display:flex;justify-content:space-between;gap:12px}
+.ledger b{font-family:var(--f-mono);font-size:13px;font-weight:500}
+.ledger .tot{border-top:1px solid var(--line);padding-top:5px;margin-top:3px;font-weight:700}
+.clues{display:grid;gap:6px;margin:0;padding:0;list-style:none;font-size:14px}
+.clues li{display:flex;gap:10px;align-items:flex-start}
+.clues .ck{flex:none;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;margin-top:1px}
+.clues .f .ck{background:var(--ok);color:var(--win)}.clues .m .ck{border:2px dashed var(--flag);color:var(--flag)}
+.sub-h{font:500 12px var(--f-mono);text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);margin-bottom:6px}
+.stamp{position:absolute;right:22px;top:14px;border:3px solid;border-radius:8px;padding:4px 12px;font:800 20px var(--f-display);letter-spacing:.08em;transform:rotate(7deg);pointer-events:none;background:color-mix(in srgb,var(--win) 80%,transparent);z-index:2}
+.stamp.good{color:var(--ok)}.stamp.bad{color:var(--bad)}.stamp.warn{color:var(--warn)}.stamp.neu{color:var(--ink-2)}
+.stamp.flag{color:var(--flag)}
+
+/* modals */
+.back{position:fixed;inset:0;background:rgba(6,12,18,.62);display:grid;place-items:center;padding:16px;z-index:50;overflow:auto}
+.sheet{background:var(--win);border:1px solid var(--line);border-radius:16px;padding:22px;width:min(480px,100%);box-shadow:var(--shadow);display:grid;gap:12px}
+.sheet h3{font-size:20px}
+.url{display:block;background:var(--win-2);border:1px solid var(--line);border-radius:10px;padding:12px;word-break:break-all;font-size:14px}
+.srow{display:flex;gap:8px;flex-wrap:wrap}
+.bwin{background:#fff;color:#1b2430;border-radius:12px;width:min(560px,100%);overflow:hidden;box-shadow:var(--shadow)}
+.btop{background:#e8ecf1;display:flex;align-items:center;gap:8px;padding:8px 10px}
+.burl{flex:1;min-width:0;background:#fff;border-radius:99px;padding:5px 12px;font:400 12px var(--f-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#1b2430}
+.btop button{background:none;border:0;color:#44505d;display:grid;place-items:center;padding:4px}
+.sim{background:#fff6d6;color:#6b5200;font-size:11px;padding:4px 12px;text-align:center}
+.bpage{padding:26px 28px 30px;display:grid;gap:10px}
+.bpage h3{font-size:22px;color:#1b2430}
+.bpage label{font-size:12px;font-weight:700;color:#44505d}
+.bpage input{width:100%;padding:10px 12px;border:1.5px solid #c8d1da;border-radius:8px;background:#fff;color:#1b2430}
+.fbrand{font:800 20px var(--f-display);color:#0b5cbd;display:flex;align-items:center;gap:8px}
+.fbrand i{width:22px;height:22px;border-radius:5px;background:#0b5cbd;display:inline-block}
+.fbtn{background:#0b5cbd;color:#fff;border:0;border-radius:8px;padding:12px;font-weight:700;margin-top:6px}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.doc{background:#f4f6f8;border:1px solid #d5dce3;border-radius:6px;padding:16px;display:grid;gap:7px}
+.doc i{display:block;height:9px;border-radius:5px;background:#cfd6dd;filter:blur(1.5px)}
+.docbar{background:#ffe8a3;border:1px solid #e6c456;border-radius:6px;padding:10px 12px;font-size:13px;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;color:#4f3d00}
+.docbar button{background:#217346;color:#fff;border:0;border-radius:6px;padding:7px 12px;font-weight:700}
+.safe-ok{display:flex;gap:10px;align-items:center;color:#0f7a58;font-weight:700}
+
+/* summary / archive */
+.sum-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:18px 0}
+.kpi{background:var(--win-2);border-radius:12px;padding:12px 14px}
+.kpi b{display:block;font:800 26px var(--f-display);font-variant-numeric:tabular-nums}
+.kpi span{font-size:12px;color:var(--ink-2)}
+.rowlist{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.rowlist li{display:grid;grid-template-columns:auto 1fr;gap:12px;padding:12px;border:1px solid var(--line);border-radius:12px;align-items:start}
+.rowlist .sj{font-weight:700}.rowlist p{font-size:13.5px;color:var(--ink-2);margin-top:2px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.cert{border:2px solid var(--ink);border-radius:14px;padding:clamp(18px,4vw,34px);text-align:center;position:relative;background:var(--win-2);margin:18px 0}
+.cert::before{content:"";position:absolute;inset:6px;border:1px solid var(--line);border-radius:9px;pointer-events:none}
+.cert h2{font-size:clamp(30px,6vw,54px);font-weight:800;letter-spacing:-.02em;color:var(--flag);margin:6px 0}
+.cert .nm{font:700 22px var(--f-display)}
+.tabs{display:flex;gap:6px;margin:6px 0 18px;flex-wrap:wrap}
+.tab{padding:8px 14px;border-radius:99px;border:1.5px solid var(--line);background:var(--win);font-weight:700;font-size:14px}
+.tab.on{background:var(--ink);color:var(--win);border-color:var(--ink)}
+.lib{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.lcard{border:1px solid var(--line);border-radius:14px;padding:16px;background:var(--win);display:grid;gap:8px;align-content:start}
+.lcard.lock{background:var(--win-2);color:var(--ink-3)}
+.gl{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--rail);color:#fff;font:800 18px var(--f-display)}
+.lock .gl{background:var(--line);color:var(--ink-3)}
+.lcard h3{font-size:17px}
+.lcard ul{margin:0;padding-left:18px;font-size:13.5px;color:var(--ink-2)}
+.lcard .do{font-size:13.5px;background:var(--win-2);padding:8px 10px;border-radius:8px}
+.bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.badge{display:flex;gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:12px}
+.badge .gl{background:var(--flag);color:var(--on-flag)}
+.badge.off{opacity:.55;background:var(--win-2)}.badge.off .gl{background:var(--line);color:var(--ink-3)}
+.badge b{display:block}.badge span{font-size:12.5px;color:var(--ink-2)}
+.bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden}.bar i{display:block;height:100%;background:var(--ok)}
+.trow{display:grid;grid-template-columns:minmax(120px,200px) 1fr 60px;gap:10px;align-items:center;font-size:14px;padding:6px 0}
+.toasts{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:grid;gap:8px;z-index:60;width:min(420px,calc(100% - 32px));pointer-events:none}
+.toast{background:var(--ink);color:var(--win);padding:10px 14px;border-radius:10px;font-size:14px;box-shadow:var(--shadow)}
+.copybox{display:flex;gap:8px;margin-top:10px}.copybox input{flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);background:var(--win-2);font:400 13px var(--f-mono)}
+
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-4px) scale(1.2)}75%{transform:translateX(4px) scale(1.2)}}
+@keyframes stampIn{0%{transform:scale(2.4) rotate(-6deg);opacity:0}100%{transform:rotate(7deg) scale(1);opacity:1}}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:no-preference){.stamp{animation:stampIn .35s cubic-bezier(.2,1.2,.3,1)}.toast{animation:rise .2s}.fb{animation:rise .3s}}
+
+@media (max-width:980px){.client{grid-template-columns:300px minmax(0,1fr)}.rail{display:none}}
+@media (max-width:760px){
+  .hero,.brief{grid-template-columns:1fr}
+  .stack{height:300px}
+  .win{height:calc(100dvh - 24px);min-height:520px}
+  .client{grid-template-columns:1fr}
+  .read{display:none}
+  .win.mread .list{display:none}.win.mread .read{display:flex}
+  .list{border-right:0}
+  .back-btn{display:grid}
+  .hud .t span.sub{display:none}
+  .stamp{font-size:15px}
+  .abtns .b{flex:1 1 140px}
+  .trow{grid-template-columns:100px 1fr 46px}
+}
+</style>
+
+<div class="wrap" id="app"></div>
+<div id="modal"></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ---------- úložiště ---------- */
+const KEY='lovec-phishingu-v1';
+let P={name:'',best:0,runs:0,cleared:0,unlocked:{},ts:{},badges:{},muted:false,fullClues:0};
+try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&typeof s==='object')P=Object.assign(P,s)}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(P))}catch(e){}}
+
+/* ---------- pomocné funkce ---------- */
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const nf=new Intl.NumberFormat('cs-CZ');
+const kc=n=>nf.format(n).replace('-','−')+' Kč';
+const sg=n=>(n>0?'+':'')+kc(n);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const hue=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))%360;return h};
+const initials=n=>n.split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+const ICON={
+flag:'<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',check:'<path d="M5 12l5 5 9-10"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>',
+mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+clip:'<path d="M20 11l-8 8a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8"/>',
+lock:'<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+help:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/>',
+heart:'<path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/>',
+back:'<path d="M15 5l-7 7 7 7"/>',home:'<path d="M4 11l8-7 8 7v9H4z"/>',
+sound:'<path d="M4 10v4h4l5 4V6l-5 4zM16 9a4 4 0 0 1 0 6"/>',mute:'<path d="M4 10v4h4l5 4V6l-5 4zM17 9l4 6M21 9l-4 6"/>',
+inbox:'<path d="M3 13l3-8h12l3 8v6H3zM3 13h5l1 3h6l1-3h5"/>',trash:'<path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13"/>',
+hook:'<path d="M12 2v10M12 12a4 4 0 1 0 4 4M8 5h8"/>'
+};
+const ic=(n,s=18)=>`<svg class="ic" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[n]}</svg>`;
+
+/* ---------- zvuk ---------- */
+let ac;
+function tone(f,d=.12,t='sine',v=.05,delay=0){
+  if(P.muted)return;
+  try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+    const o=ac.createOscillator(),g=ac.createGain();o.type=t;o.frequency.value=f;o.connect(g);g.connect(ac.destination);
+    const s=ac.currentTime+delay;g.gain.setValueAtTime(v,s);g.gain.exponentialRampToValueAtTime(.0001,s+d);o.start(s);o.stop(s+d+.02)}catch(e){}
+}
+const sfx={good(){tone(660,.1);tone(880,.18,'sine',.05,.09)},bad(){tone(190,.28,'sawtooth',.035);tone(140,.3,'sawtooth',.035,.14)},click(){tone(440,.05,'square',.015)},mark(){tone(560,.07,'triangle',.04)},ding(){tone(520,.12,'triangle',.04);tone(700,.12,'triangle',.04,.1)}};
+
+/* ---------- obsah: typy (příručka) ---------- */
+const TYPES={
+urgent:{n:'Nátlak a časový tlak',g:'!',s:'Útočník chce, abys jednal dřív, než začneš přemýšlet.',signs:['„Do 24 hodin“, „ihned“, „poslední upozornění“','Hrozba blokace účtu, pokuty nebo ztráty dat','Generické oslovení „Vážený uživateli“'],do:'Zpomal. Otevři službu sám v prohlížeči, ne přes odkaz z mailu.'},
+domain:{n:'Podvržená adresa',g:'@',s:'Jméno odesílatele je pravé, adresa ne. Útočník změní jedno písmeno nebo použije jinou koncovku.',signs:['novatem.cz místo novaterm.cz','Čísla místo písmen (0 místo o)','Soukromý gmail u „firemního“ mailu'],do:'Čti celou adresu za zavináčem. Jméno si může vymyslet kdokoli.'},
+link:{n:'Zrádný odkaz',g:'↗',s:'Text odkazu slibuje jedno, cíl je jinde. Někdy píše i pravý kolega s napadeným účtem.',signs:['Skutečná doména je ta před první lomítkem: u rychly-balik.cz.platba-info.top je to platba-info.top','Sdílený dokument od neznámé služby','Lákavý název souboru (mzdy, bonusy)'],do:'Neklikej. Otevři službu přes záložku nebo vyhledávač.'},
+attach:{n:'Nebezpečná příloha',g:'▤',s:'Soubor se tváří jako faktura nebo potvrzení, ale spustí škodlivý kód nebo falešné přihlášení.',signs:['Přípony .docm, .xlsm, .html, .zip, .exe','Výzva „povolit makra“ nebo „povolit úpravy“','Heslo k archivu přímo v textu mailu'],do:'Nečekané přílohy neotevírej. Ověř odesílatele jinou cestou.'},
+parcel:{n:'Falešný kurýr',g:'▦',s:'Zpráva o balíku, který nemůže být doručen, dokud nezaplatíš „malý poplatek“.',signs:['Doplatek za doručení','Platba kartou na neznámém webu','Balík, který neočekáváš'],do:'Zkontroluj sledování na webu kurýra a objednávku v e-shopu.'},
+prize:{n:'Výhra a příliš dobré nabídky',g:'★',s:'Odměna, o kterou jsi nežádal. Cílem je tvoje karta, tvoje doklady nebo tvoje důvěra.',signs:['Soutěž, do které ses nepřihlásil','Poplatek za převzetí výhry','Práce z domova za nereálné peníze','Žádost o kopii dokladů a číslo účtu'],do:'Co zní příliš dobře, aby to byla pravda, pravda není.'},
+support:{n:'Falešná podpora',g:'?',s:'IT, banka nebo služba „potřebuje“ heslo, nebo tě pošle na telefonní číslo.',signs:['Žádost o heslo e-mailem (IT to nikdy neudělá)','Neočekávaná faktura a číslo pro „zrušení“','Odpověď by šla na jinou adresu (Reply-To)'],do:'Heslo nesděluj nikomu. Kontakt hledej na oficiálním webu.'},
+qr:{n:'QR phishing',g:'▣',s:'QR kód ukrývá adresu. Na mobilu obejdeš firemní ochranu a adresu nevidíš.',signs:['QR kód v e-mailu místo odkazu','Kód vede na přihlašovací stránku','Naléhavá lhůta'],do:'Kódy z mailů neskenuj. Adresu si vždy zkontroluj.'},
+ceo:{n:'Podvod s ředitelem',g:'Ř',s:'„Šéf“ chce rychlou důvěrnou platbu a nechce volat.',signs:['Soukromá adresa místo firemní','Naléhavá, utajená platba','„Nemůžu telefonovat“','Obchází běžný schvalovací proces'],do:'Ověř platbu telefonem na známém čísle a drž se schvalování.'},
+invoice:{n:'Změna účtu dodavatele',g:'₿',s:'Dodavatel „oznámí“ nový bankovní účet. Peníze pak odejdou útočníkovi.',signs:['Doména dodavatele se liší o jedno písmeno','Odpovědi jdou na jinou adresu','Tlak na rychlou úhradu'],do:'Změnu účtu vždy ověř telefonicky na číslu, které už znáš.'},
+mfa:{n:'Krádež ověřovacího kódu',g:'#',s:'Útočník zná tvé heslo a potřebuje už jen kód z SMS nebo aplikace.',signs:['Žádost o kód odpovědí nebo po telefonu','Poplach o neobvyklém přihlášení s odkazem','Kód, o který jsi nežádal'],do:'Ověřovací kód nikdy nikomu nesděluj.'},
+blackmail:{n:'Vydírání',g:'$',s:'Hromadný e-mail, který tvrdí, že má tvoje heslo a kompromitující záběry.',signs:['Staré heslo z veřejného úniku dat','Platba v kryptoměně','Hrozba lhůtou'],do:'Nepanikař a neplať. Změň heslo tam, kde ho používáš, a zprávu smaž.'},
+bank:{n:'Falešná banka',g:'¤',s:'„Banka“ ti zablokuje platbu a po telefonu chce kód z SMS nebo PIN.',signs:['Doména jen podobná bance (nordia-banka.cz)','Telefonní číslo v e-mailu','Žádost o PIN nebo kód'],do:'Zavolej na číslo na kartě. Banka nechce PIN ani kód po telefonu.'},
+legit:{n:'Jak poznat pravou zprávu',g:'✓',s:'Většina pošty je v pořádku. Paranoia taky stojí čas a peníze.',signs:['Známý odesílatel, firemní doména, ověření prošlo','Zpráva souvisí s tím, co očekáváš','Odkazy vedou na stejnou doménu jako odesílatel','Obecné oslovení samo o sobě podvod není'],do:'Když si nejsi jistý, zeptej se IT. Falešné poplachy zatěžují bezpečnostní tým.'}
+};
+
+/* ---------- obsah: směny ---------- */
+const SHIFTS=[
+{t:'Pondělí: první den',day:'Po',sub:'Vítej ve firmě Novaterm. Prvních šest zpráv ukáže, jak si vedeš.',tip:'Podívej se, odkud zpráva skutečně přichází. Jméno odesílatele může napsat kdokoli. Klikni na „Technické detaily“.',mails:[1,2,3,4,5,6]},
+{t:'Úterý: balíky a podpora',day:'Út',sub:'Firma tento týden čeká toner z objednávky OBJ-5521 od Kancelářských potřeb Moravia.',tip:'Nátlak, poplatky a „nutná akce“ jsou varovné signály. Dej si pozor i na QR kódy.',mails:[7,8,9,10,11,12]},
+{t:'Středa: šéf potřebuje pomoc',day:'St',sub:'Právě ses přihlásil do Hyper365 na svém počítači.',tip:'Změna účtu nebo urgentní platba? Ověř ji jinou cestou, třeba telefonem. Sleduj také řádek „Ověření“ v technických detailech.',mails:[13,14,15,16,17,18]},
+{t:'Čtvrtek: cílené útoky',day:'Čt',sub:'Dnes ti telefonovala Kateřina z auditorské firmy Ekonomika s.r.o.',tip:'Útočník zná jména tvých kolegů, takže osobní oslovení nic nedokazuje. Cizí odesílatel zase není automaticky podvodník.',mails:[19,20,21,22,23,24]},
+{t:'Pátek: ostřílení',day:'Pá',sub:'Poslední směna. Pozor na paranoiu, falešný poplach stojí také.',tip:'Nic není jisté na první pohled. Skládej dohromady doménu, ověření, kontext a tlak. Pravý odesílatel může mít napadený účet.',mails:[25,26,27,28,29,30]}
+];
+
+/* ---------- obsah: zprávy ----------
+ syntaxe těla: {{klíč|text}} = označitelná stopa, [[url|text|klíč|styl]] = odkaz (btn, qr), prázdný řádek = odstavec */
+const MAILS=[
+{id:1,type:'urgent',phish:true,time:'07:42',from:{n:'Podpora Hyper365',a:'support@hyper365-helpdesk.xyz'},auth:'fail',
+ subj:'Vaše heslo vyprší za 24 hodin',
+ body:`{{gen|Vážený uživateli}},\n\nz bezpečnostních důvodů musíte své heslo obnovit {{urg|do 24 hodin}}, jinak bude váš účet {{urg|trvale zablokován}}.\n\n[[https://login.hyper365-helpdesk.xyz/obnova-hesla|Obnovit heslo|lnk|btn]]\n\nTým podpory Hyper365`,
+ clues:{h_from:'Služba Hyper365 píše z hyper365.com. Doména hyper365-helpdesk.xyz jí nepatří.',h_auth:'Ověření odesílatele selhalo, zpráva se vydává za někoho jiného.',gen:'Pravá služba zná tvé jméno. „Vážený uživateli“ je znak hromadné rozesílky.',urg:'Časový tlak a hrozba blokace mají zabránit přemýšlení.',lnk:'Odkaz vede na cizí doménu .xyz, ne na hyper365.com.'},
+ why:'Cizí doména, selhané ověření, anonymní oslovení a hrozba blokace za 24 hodin. Heslo se mění přímo v aplikaci, ne přes odkaz z mailu.',
+ trap:{kind:'login',brand:'Hyper365'}},
+{id:2,type:'legit',phish:false,time:'08:05',from:{n:'Jana Nováková',a:'jana.novakova@novaterm.cz'},auth:'pass',
+ subj:'Zápis z porady 27. 10.',
+ body:`Ahoj,\n\nv příloze je zápis z pondělní porady. Úkoly pro náš tým jsou na straně 2, termíny jsme si potvrdili.\n\nDíky\nJana`,
+ att:[{name:'zapis_porada_2710.pdf',size:'184 kB'}],clues:{},
+ why:'Kolegyně z interní domény, ověření prošlo, očekávaná příloha ve formátu PDF a žádný nátlak.',
+ safe:{title:'zapis_porada_2710.pdf',text:'Zápis z porady 27. 10. Přítomni: Horák, Nováková, Dvořáková, Kratochvíl. Úkol: připravit podklady pro Q4 do 5. 11.'}},
+{id:3,type:'prize',phish:true,time:'08:19',from:{n:'Spotřebitelská loterie',a:'vyhra@loterie-vyherce.top'},auth:'none',
+ subj:'Gratulujeme! Jste náš 1000. návštěvník',
+ body:`Dobrý den,\n\ngratulujeme, {{prize|vyhráli jste nový telefon v hodnotě 29 990 Kč}}! Do soutěže jste byli zařazeni automaticky.\n\nCenu si musíte vyzvednout {{urg|do 2 hodin}}, jinak propadne. Stačí uhradit poštovné 49 Kč.\n\n[[https://vyhra-telefon.top/prevzit|Převzít výhru|lnk|btn]]`,
+ clues:{h_from:'Doména .top bez vztahu k nějaké skutečné firmě.',prize:'Do soutěže ses nepřihlásil. Výhra, o kterou jsi nežádal, je klasický vějičkový podvod.',urg:'Lhůta dvou hodin má zabránit rozmyslu.',lnk:'Poštovné se platí kartou na cizím webu. Cílem jsou údaje o kartě.'},
+ why:'Výhra v soutěži, do které ses nepřihlásil, poplatek a lhůta dvou hodin. Cílem je tvoje platební karta.',
+ trap:{kind:'card',brand:'Převzetí výhry',amount:'49 Kč'}},
+{id:4,type:'legit',phish:false,time:'08:31',from:{n:'Tomáš Kratochvíl',a:'tomas.kratochvil@novaterm.cz'},auth:'pass',
+ subj:'Odstávka tiskáren ve čtvrtek',
+ body:`Ahoj všichni,\n\nve čtvrtek 30. 10. od 17:00 do 18:00 budeme aktualizovat tiskové servery. Tisk nebude dostupný. Pokud potřebujete něco vytisknout, udělejte to prosím dřív.\n\nTomáš, IT`,clues:{},
+ why:'Interní oznámení od IT z firemní domény. Nežádá heslo ani kliknutí, jen informuje.'},
+{id:5,type:'blackmail',phish:true,time:'08:47',from:{n:'Anonym',a:'k8d2x9@mailbox-secure.ru'},auth:'none',
+ subj:'Vím vaše heslo',
+ body:`Ahoj,\n\nvím, že vaše heslo je {{pw|Heslo2019}}. Dostal jsem se do vašeho zařízení a mám {{threat|kompromitující záběry a vaši historii prohlížení}}.\n\nPošlete {{pay|0,05 BTC}} na adresu bc1q9x7…f4k7. Máte {{urg|48 hodin}}. Pak vše rozešlu vašim kontaktům.`,
+ clues:{h_from:'Anonymní adresa na ruské doméně bez vztahu k tobě.',pw:'Staré heslo pochází z veřejných úniků dat. Neznamená to, že se někdo dostal do tvého počítače.',threat:'Záběry neexistují. Stejný text dostávají tisíce lidí.',pay:'Platba v kryptoměně je nevratná a nikdo seriózní ji nechce.',urg:'Lhůta je tu jen k vyvolání paniky.'},
+ why:'Hromadný vydírací mail. Heslo je ze starého úniku dat a hrozba je prázdná. Neplať a změň heslo všude, kde ho používáš.'},
+{id:6,type:'attach',phish:true,time:'09:02',from:{n:'Fakturace',a:'faktury@dodavatel-online.biz'},auth:'fail',
+ subj:'Neuhrazená faktura č. 2024118',
+ body:`Dobrý den,\n\nv příloze zasíláme {{urg|poslední upomínku}} k neuhrazené faktuře. Dokument otevřete a {{macro|povolte úpravy a makra}}, aby se zobrazil celý obsah.\n\nFakturační oddělení`,
+ att:[{name:'Faktura_2024118.docm',size:'96 kB'}],
+ clues:{h_from:'Neznámý dodavatel na doméně .biz a upomínka na fakturu, kterou nikdo nezná.',h_auth:'Ověření odesílatele selhalo.',urg:'Slovo „poslední upomínka“ vyvolává tlak.',macro:'Výzva „povolit makra“ je nejčastější cesta ke spuštění škodlivého kódu.',att0:'Přípona .docm je dokument s makry. Faktury chodí jako PDF.'},
+ why:'Neznámý dodavatel, selhané ověření a dokument s makry. Prosba „povolit makra“ je jasný varovný signál.',
+ trap:{kind:'macro',brand:'Faktura_2024118.docm'}},
+
+{id:7,type:'parcel',phish:true,time:'07:30',from:{n:'Rychlý Balík',a:'info@rychly-balik-doruceni.com'},auth:'fail',
+ subj:'Balík nelze doručit – doplatek 29 Kč',
+ body:`Dobrý den,\n\nVáš balík č. RB77129 nelze doručit, protože chybí {{fee|doplatek 29 Kč}}. Zaplaťte {{urg|do 24 hodin}}, jinak bude vrácen odesílateli.\n\n[[https://rychly-balik.cz.platba-info.top/doplatek|Zaplatit doplatek|lnk|btn]]`,
+ clues:{h_from:'Kurýr píše z rychlybalik.cz, ne z „rychly-balik-doruceni.com“.',h_auth:'Ověření odesílatele selhalo.',fee:'Doplatek za doručení je záminka k získání údajů o kartě. Firma žádný balík neobjednala s takovou podmínkou.',urg:'Lhůta 24 hodin.',lnk:'Skutečná doména je platba-info.top. „rychly-balik.cz“ je jen poddoména, kterou si útočník zvolil jako kamufláž.'},
+ why:'Doplatek, lhůta a doména, která se jen tváří jako kurýrská. Pravý kurýr píše z rychlybalik.cz a za doručení nic nežádá.',
+ trap:{kind:'card',brand:'Rychlý Balík – platba',amount:'29 Kč'}},
+{id:8,type:'legit',phish:false,time:'07:55',from:{n:'Rychlý Balík',a:'info@rychlybalik.cz'},auth:'pass',
+ subj:'Váš balík dorazí zítra',
+ body:`Dobrý den,\n\nzásilka z objednávky OBJ-5521 (Kancelářské potřeby Moravia, toner) dorazí zítra mezi 8:00 a 12:00. Za doručení neplatíte nic.\n\n[[https://www.rychlybalik.cz/sledovani/RB48210|Sledovat zásilku|ok|btn]]`,clues:{},
+ why:'Čeká se na toner z objednávky OBJ-5521, doména rychlybalik.cz sedí, ověření prošlo a nikdo nechce žádné peníze.',
+ safe:{title:'Sledování zásilky RB48210',text:'Stav: v přepravě. Doručení zítra 8–12 h. Žádná platba není vyžadována.'}},
+{id:9,type:'support',phish:true,time:'08:10',from:{n:'IT oddělení',a:'it-podpora@novaterm-helpdesk.cz'},reply:'sber@gmail-bezpecnost.com',auth:'fail',
+ subj:'Upgrade poštovní schránky – nutná akce',
+ body:`Dobrý den,\n\nprovádíme upgrade poštovních schránek. Aby vám zůstal přístup, {{cred|odpovězte na tento e-mail a uveďte své přihlašovací jméno a heslo}}.\n\nPokud tak neučiníte {{urg|do pátku}}, schránku zrušíme.\n\nIT oddělení`,
+ clues:{h_from:'Firemní IT píše z novaterm.cz. Tady je novaterm-helpdesk.cz.',h_reply:'Odpověď by šla na zcela jinou adresu na gmail-bezpecnost.com.',h_auth:'Ověření odesílatele selhalo.',cred:'IT po tobě nikdy nebude chtít heslo e-mailem.',urg:'Hrozba zrušením schránky.'},
+ why:'Skutečné IT nikdy nežádá heslo e-mailem. Navíc adresa i odpověď vedou mimo firemní doménu.'},
+{id:10,type:'qr',phish:true,time:'08:28',from:{n:'Benefity Novaterm',a:'benefity@novaterm-benefity.info'},auth:'none',
+ subj:'Nový benefitní program – aktivace do pátku',
+ body:`Dobrý den,\n\nzaměstnanecké benefity se od listopadu přesouvají do nové aplikace. Účet si aktivujete naskenováním QR kódu mobilem:\n\n[[https://novaterm-benefity.info/aktivace|QR kód|qr|qr]]\n\nPřihlaste se firemním heslem {{urg|do pátku}}, jinak nárok na příspěvky propadne.`,
+ clues:{h_from:'Doména novaterm-benefity.info není firemní. Firma používá novaterm.cz.',qr:'QR kód skrývá adresu a na mobilu obcházíš firemní ochranu. Adresu je nutné zkontrolovat.',urg:'Lhůta s hrozbou ztráty příspěvků.'},
+ why:'Cizí doména, QR kód místo viditelného odkazu a žádost o firemní heslo s časovým limitem. Klasický „quishing“.',
+ trap:{kind:'login',brand:'Novaterm Benefity'}},
+{id:11,type:'legit',phish:false,time:'08:44',from:{n:'Jana Nováková',a:'jana.novakova@novaterm.cz'},auth:'pass',
+ subj:'Školení BOZP – vyberte si termín',
+ body:`Ahoj,\n\nv listopadu proběhne povinné školení BOZP. Termíny a přihlášení najdeš na intranetu:\n\n[[https://intra.novaterm.cz/skoleni|Vybrat termín|ok|btn]]\n\nProsím přihlas se do pátku, ať můžeme zarezervovat sál.\n\nDíky, Jana`,clues:{},
+ why:'Má termín, ale je to běžný provozní termín. Odesílatel i odkaz jsou na firemní doméně novaterm.cz a ověření prošlo.',
+ safe:{title:'Intranet Novaterm – Školení BOZP',text:'Dostupné termíny: 12. 11. 9:00, 14. 11. 13:00, 19. 11. 9:00.'}},
+{id:12,type:'legit',phish:false,time:'09:01',from:{n:'Kancelářské potřeby Moravia',a:'novinky@kancelarskepotreby-moravia.cz'},auth:'pass',
+ subj:'Podzimní slevy až 30 % na papír a toner',
+ body:`Dobrý den,\n\nv podzimní akci máte papír, tonery a archivační krabice se slevou až 30 %. Akce platí do konce listopadu.\n\n[[https://www.kancelarskepotreby-moravia.cz/akce|Zobrazit akční nabídku|ok|btn]]\n\nOdhlásit odběr: [[https://www.kancelarskepotreby-moravia.cz/odhlasit|odhlásit|unsub]]`,clues:{},
+ why:'Reklama od skutečného dodavatele. Odkazy vedou na jeho vlastní doménu a ověření prošlo. Slevy nejsou podvod, podvod je tlak a cizí doména.',
+ safe:{title:'Akční nabídka',text:'Papír A4 80 g, 5 × 500 listů, nyní o 30 % levněji. Platí do 30. 11.'}},
+
+{id:13,type:'ceo',phish:true,time:'07:18',from:{n:'Pavel Horák',a:'pavel.horak.novaterm@gmail.com'},auth:'none',
+ subj:'Důvěrné – potřebuji vaši pomoc',
+ body:`Dobrý den,\n\njsem právě na jednání a {{nophone|nemůžu telefonovat}}. Potřebuji, abyste {{pay|obratem uhradili fakturu 148 500 Kč}} novému dodavateli. Je to {{conf|důvěrné, zatím o tom nikomu neříkejte}}.\n\nČíslo účtu pošlu hned po vašem potvrzení. Odpovězte, že to zařídíte.\n\nPavel`,
+ clues:{h_from:'Ředitel píše z firemní adresy novaterm.cz. Tady je soukromý gmail.',nophone:'Útočník se vyhýbá telefonu, protože by ho prozradil hlas.',pay:'Neobvyklá platba mimo schvalovací proces je typický podvod „CEO fraud“.',conf:'Utajení brání kolegům, aby podvod odhalili.'},
+ why:'Soukromá adresa, utajená urgentní platba a „nemůžu telefonovat“. Platbu bys ověřil telefonem a přes schvalovací proces.'},
+{id:14,type:'legit',phish:false,time:'07:40',from:{n:'Pavel Horák',a:'pavel.horak@novaterm.cz'},auth:'pass',
+ subj:'Podklady na čtvrtek',
+ body:`Dobrý den,\n\nprosím připravte na čtvrteční poradu přehled zakázek za Q4, stačí jedna strana. Šablonu najdete na intranetu.\n\n[[https://intra.novaterm.cz/sablony|Šablona přehledu|ok]]\n\nDěkuji\nPavel Horák, ředitel`,clues:{},
+ why:'Ředitel píše z firemní adresy, žádá obvyklou práci, nic neutajuje a nežádá peníze. Odkaz míří na intra.novaterm.cz.',
+ safe:{title:'Intranet Novaterm – Šablony',text:'Šablona: Přehled zakázek Q4.docx'}},
+{id:15,type:'invoice',phish:true,time:'08:02',from:{n:'Kancelářské potřeby Moravia',a:'fakturace@kancelarskepotreby-moravla.cz'},reply:'platby@moravia-finance.com',auth:'fail',
+ subj:'Změna bankovního účtu od 1. 11.',
+ body:`Dobrý den,\n\nod 1. 11. používáme nový bankovní účet {{acc|2201234567/2010}}. Platby na původní účet už nebudou připsány. Prosíme o úpravu platebních údajů a o {{urg|úhradu faktur ještě tento týden}}.\n\nDěkujeme za pochopení\nOddělení financí`,
+ clues:{h_from:'V doméně je „moravla“ s písmenem l místo i. Pravý dodavatel píše z kancelarskepotreby-moravia.cz.',h_reply:'Odpovědi by šly na jinou doménu, moravia-finance.com.',h_auth:'Ověření odesílatele selhalo.',acc:'Změna účtu e-mailem je častý způsob přesměrování plateb. Vždy ověř telefonem.',urg:'Tlak na rychlou úhradu.'},
+ why:'Doména, která se liší jedním písmenem, jiná adresa pro odpovědi a změna účtu e-mailem. Změnu účtu vždy ověř telefonem.'},
+{id:16,type:'legit',phish:false,time:'08:15',from:{n:'Hyper365',a:'no-reply@hyper365.com'},auth:'pass',
+ subj:'Váš ověřovací kód: 482 913',
+ body:`Váš jednorázový kód pro přihlášení je 482 913.\n\nPřihlášení z počítače s Windows, Praha. Kód platí 10 minut. Pokud jste se právě nepřihlašovali, tuto zprávu ignorujte. Kód nikdy nikomu nesdělujte, ani pracovníkům podpory.`,clues:{},
+ why:'Právě ses přihlásil, kód přišel od skutečné služby a nikdo po tobě nechce, abys ho někam posílal. Kód se používá jen ve formuláři, který sám otevřeš.'},
+{id:17,type:'mfa',phish:true,time:'08:33',from:{n:'Hyper365 Security',a:'alerts@hyper365-alerts.net'},auth:'fail',
+ subj:'Neobvyklé přihlášení z Nigérie',
+ body:`Zaznamenali jsme pokus o přihlášení z neznámého zařízení (Lagos, Nigérie).\n\nChcete-li účet ochránit, {{code|odpovězte na tento e-mail ověřovacím kódem, který vám právě přišel SMS}}.\n\nNebo účet okamžitě zabezpečte:\n\n[[https://secure.hyper365-alerts.net/verify|Zabezpečit účet|lnk|btn]]`,
+ clues:{h_from:'Hyper365 píše z hyper365.com, ne z hyper365-alerts.net.',h_auth:'Ověření odesílatele selhalo.',code:'Ověřovací kód se nikdy nikomu nesděluje. Útočník právě zadává tvé heslo a kód potřebuje k dokončení přihlášení.',lnk:'Odkaz vede na cizí doménu.'},
+ why:'Falešný poplach s požadavkem na kód z SMS. Útočník zná heslo a potřebuje už jen kód. Pravý kód ti přišel dříve a nikam se neposílá.',
+ trap:{kind:'login',brand:'Hyper365'}},
+{id:18,type:'attach',phish:true,time:'08:51',from:{n:'Marie Dvořáková',a:'marie.dvorakova@novaterm.cz'},auth:'fail',
+ subj:'Faktura k odsouhlasení',
+ body:`Ahoj,\n\nposílám fakturu od dodavatele k odsouhlasení. Otevři ji prosím v prohlížeči a {{login|přihlas se firemním účtem}}, aby se dokument zobrazil.\n\nMarie`,
+ att:[{name:'faktura_k_odsouhlaseni.html',size:'12 kB'}],
+ clues:{h_auth:'Adresa vypadá správně, ale ověření selhalo. Někdo se za Marii vydává, adresa je podvržená.',att0:'HTML příloha otevřená v prohlížeči často skrývá falešné přihlášení. Faktury nechodí jako .html.',login:'Dokument, který chce heslo, aby se zobrazil, je podvrh.'},
+ why:'Adresa sedí, ale ověření selhalo. Příloha .html a výzva k přihlášení prozrazují falešnou přihlašovací stránku. Dobrý důvod mrknout do technických detailů.',
+ trap:{kind:'login',brand:'Faktura online'}},
+
+{id:19,type:'link',phish:true,time:'07:25',from:{n:'Cloudora',a:'share@cloudora-docs.link'},auth:'none',
+ subj:'Jana Nováková s vámi sdílí dokument',
+ body:`Jana Nováková s vámi sdílí dokument {{bait|Mzdy 2025 – návrh.xlsx}}.\n\n[[https://cloudora.share-files.cc/d/8f2a1c|Otevřít dokument|lnk|btn]]\n\nPokud dokument nechcete otevřít, ignorujte tuto zprávu.`,
+ clues:{h_from:'Služba Cloudora píše z cloudora.com. Tady je cloudora-docs.link.',bait:'Lákavý název (mzdy) má vzbudit zvědavost. Jana by ti to řekla osobně nebo interním kanálem.',lnk:'share-files.cc nemá se službou Cloudora nic společného.'},
+ why:'Doména se jen tváří jako Cloudora a dokument s mzdami láká na zvědavost. Odkaz vede na cizí web.',
+ trap:{kind:'login',brand:'Cloudora'}},
+{id:20,type:'legit',phish:false,time:'07:48',from:{n:'Cloudora',a:'no-reply@cloudora.com'},auth:'pass',
+ subj:'Tomáš Kratochvíl s vámi sdílí složku Šablony IT',
+ body:`Tomáš Kratochvíl s vámi sdílí složku Šablony IT.\n\n[[https://app.cloudora.com/s/ab12cd|Otevřít složku|ok|btn]]`,clues:{},
+ why:'Správná doména cloudora.com, ověření prošlo a odkaz vede na stejnou službu. Sdílení od kolegy z IT je běžné.',
+ safe:{title:'Cloudora – Šablony IT',text:'Složka obsahuje 4 soubory: Přístupy.docx, Postup_instalace.pdf, ...'}},
+{id:21,type:'bank',phish:true,time:'08:09',from:{n:'Bankovnictví Nordia',a:'bezpecnost@nordia-banka.cz'},auth:'none',
+ subj:'Zablokovali jsme podezřelou platbu 12 990 Kč',
+ body:`Dobrý den,\n\nv e-shopu byla zablokována platba 12 990 Kč vaší kartou. Pro odblokování {{call|zavolejte na číslo +420 777 123 456}} a pracovníkovi nadiktujte {{code|kód z SMS a PIN}}.\n\nOddělení bezpečnosti`,
+ clues:{h_from:'Banka píše z nordia.cz, ne z nordia-banka.cz.',call:'Číslo v mailu nemusí patřit bance. Volej na číslo z karty nebo z oficiálního webu.',code:'Banka nikdy nechce PIN ani kód z SMS po telefonu.'},
+ why:'Banka nikdy po telefonu nechce PIN ani kód z SMS. Navíc píše z jiné domény (nordia-banka.cz místo nordia.cz).'},
+{id:22,type:'support',phish:true,time:'08:30',from:{n:'Hyper365 Billing',a:'billing@hyper365-invoice.com'},auth:'none',
+ subj:'Faktura 8 990 Kč – předplatné Premium',
+ body:`Děkujeme za objednávku!\n\nVaše předplatné Hyper365 Premium bylo prodlouženo o 12 měsíců. Z vaší karty bude stržena částka {{amt|8 990 Kč}}.\n\nPokud s platbou nesouhlasíte, {{call|zavolejte na +1 (888) 555 0142}} {{urg|do 24 hodin}}.\n\nHyper365 Billing`,
+ clues:{h_from:'Hyper365 píše z hyper365.com.',amt:'Vysoká částka za službu, kterou jsi neobjednal, má vyvolat paniku.',call:'Cílem není web, ale telefon. „Operátor“ tě vyzve k instalaci vzdáleného přístupu nebo k zadání karty.',urg:'Lhůta 24 hodin.'},
+ why:'Zpráva o objednávce, kterou jsi neudělal, a telefonní číslo pro „zrušení“. Tak funguje podvod s vyzváněním.'},
+{id:23,type:'legit',phish:false,time:'08:55',from:{n:'Kateřina Svobodová',a:'k.svobodova@ekonomika-sro.cz'},auth:'pass',
+ subj:'Podklady k auditu – jak jsme se domluvili',
+ body:`Dobrý den,\n\nděkuji za dnešní telefonát. Jak jsme se domluvili, posílám odkaz na sdílený balíček s podklady k auditu. Platnost odkazu je 14 dní.\n\n[[https://sdileni.ekonomika-sro.cz/audit2025|Podklady k auditu|ok|btn]]\n\nS pozdravem\nKateřina Svobodová, Ekonomika s.r.o.`,clues:{},
+ why:'Cizí odesílatel není automaticky podvodník. Sedí kontext (dnešní telefonát), ověření prošlo a odkaz vede na doménu odesílatele. Při pochybnostech stačí zavolat.',
+ safe:{title:'Ekonomika s.r.o. – sdílený balíček',text:'Podklady k auditu 2025 (3 soubory, platnost 14 dní).'}},
+{id:24,type:'prize',phish:true,time:'09:10',from:{n:'Kariéra Plus',a:'kariera.plus.nabidky@gmail.com'},auth:'none',
+ subj:'Zajímavá pracovní nabídka z domova',
+ body:`Dobrý den,\n\nzaujal nás váš profil. Nabízíme práci administrativního pracovníka {{too|z domova, 2 hodiny denně, za 70 000 Kč měsíčně}}. Nepotřebujete praxi ani vzdělání.\n\nPro rychlý nástup nám {{id|pošlete kopii občanského průkazu a číslo účtu}}. Místo držíme jen do zítřka.`,
+ clues:{h_from:'Personální agentura by psala z vlastní domény, ne z gmailu.',too:'Příliš dobrá nabídka za nulovou kvalifikaci.',id:'Kopii dokladů a číslo účtu před smlouvou chtějí podvodníci. Zneužijí je k půjčkám nebo k praní peněz.'},
+ why:'Nereálná nabídka a žádost o doklady a číslo účtu ještě před smlouvou. Takhle vznikají falešné půjčky na tvé jméno.'},
+
+{id:25,type:'legit',phish:false,time:'07:20',from:{n:'Tomáš Kratochvíl',a:'tomas.kratochvil@novaterm.cz'},auth:'pass',
+ subj:'Heslo do VPN vyprší za 7 dní',
+ body:`Ahoj,\n\nplatnost hesla do VPN končí za 7 dní. Změnit si ho můžeš kdykoli na přihlašovací stránce:\n\n[[https://sso.novaterm.cz/zmena-hesla|Změnit heslo|ok|btn]]\n\nPřipomínám, že po tobě nikdy nebudeme chtít heslo e-mailem ani telefonicky.\n\nTomáš, IT`,clues:{},
+ why:'Připomínka od IT bez nátlaku, z firemní domény, s ověřením a odkazem na sso.novaterm.cz. Nežádá heslo e-mailem. I mail o heslech může být pravý.',
+ safe:{title:'Firemní přihlášení – změna hesla',text:'Adresa sso.novaterm.cz patří firmě. Zadejte staré a nové heslo.'}},
+{id:26,type:'domain',phish:true,time:'07:44',from:{n:'Pavel Horák',a:'pavel.horak@novatem.cz'},auth:'none',
+ subj:'Rozpis dovolených na rok 2026',
+ body:`Dobrý den,\n\nprosím doplňte do rozpisu své plánované dovolené na příští rok. Rozpis je sdílený v tabulce:\n\n[[https://novatem-intra.cz/dovolena|Otevřít rozpis|lnk|btn]]\n\nDěkuji\nPavel Horák`,
+ clues:{h_from:'V „novatem.cz“ chybí písmeno r. Firma je novaterm.cz.',lnk:'Odkaz vede na novatem-intra.cz. Firemní intranet je intra.novaterm.cz.'},
+ why:'Žádný nátlak, ale doména odesílatele i odkaz mají o písmeno méně. Nejnebezpečnější podvody vypadají nenápadně.',
+ trap:{kind:'login',brand:'Novaterm intranet'}},
+{id:27,type:'legit',phish:false,time:'08:00',from:{n:'Bankovnictví Nordia',a:'info@nordia.cz'},auth:'pass',
+ subj:'Nové obchodní podmínky od 1. 1.',
+ body:`Vážená klientko, vážený kliente,\n\nod 1. 1. 2026 se mění naše obchodní podmínky. Nemusíte nic dělat. Úplné znění najdete na našem webu.\n\n[[https://www.nordia.cz/podminky|Znění podmínek|ok]]\n\nVaše banka Nordia`,clues:{},
+ why:'Hromadná zpráva z nordia.cz s ověřením a bez požadavku na akci. Obecné oslovení samo podvod neznamená, rozhoduje doména, ověření a žádost.',
+ safe:{title:'Nordia – obchodní podmínky',text:'Úplné znění obchodních podmínek platných od 1. 1. 2026.'}},
+{id:28,type:'attach',phish:true,time:'08:22',from:{n:'Business Travel',a:'rezervace@business-travel-cz.com'},auth:'none',
+ subj:'Potvrzení rezervace služební cesty',
+ body:`Dobrý den,\n\nv příloze najdete potvrzení rezervace letenky a hotelu. Archiv je zabezpečený, {{pw|heslo: 2025}}.\n\nPokud rezervaci nepoznáváte, {{urg|do 12 hodin}} nás kontaktujte, jinak bude účtován storno poplatek.`,
+ att:[{name:'rezervace_potvrzeni.zip',size:'1,4 MB'}],
+ clues:{h_from:'Neznámá agentura, se kterou firma nespolupracuje.',att0:'ZIP archiv s heslem v textu mailu brání antiviru ve kontrole.',pw:'Heslo uvedené přímo v mailu je trik, jak obejít skenování příloh.',urg:'Rezervace, kterou jsi neobjednal, má vyvolat zvědavost nebo strach.'},
+ why:'Nečekané potvrzení rezervace, zabezpečený archiv s heslem v textu a časová lhůta. Typický způsob rozesílání malwaru.',
+ trap:{kind:'macro',brand:'rezervace_potvrzeni.zip'}},
+{id:29,type:'link',phish:true,time:'08:41',from:{n:'Marie Dvořáková',a:'marie.dvorakova@novaterm.cz'},auth:'pass',
+ subj:'Re: Faktura 2024-118 (PDF)',
+ body:`Ahoj,\n\nposílám znovu, předchozí verze měla chybu. Aktuální faktura je zde:\n\n[[https://cloudora.files-novaterm.top/f/118|faktura_2024-118.pdf|lnk]]\n\nMarie\n\n> Původní zpráva: Faktura 2024-118 (PDF), 24. 10.`,
+ clues:{lnk:'Marie běžně posílá přílohu. Tady je odkaz na cizí doménu .top. Její účet byl nejspíš napaden, proto adresa i ověření sedí.'},
+ why:'Pravý odesílatel s napadeným účtem. Adresa i ověření sedí, ale odkaz vede na cizí doménu .top místo přílohy. Při pochybnostech Marii zavolej.',
+ trap:{kind:'login',brand:'Cloudora'}},
+{id:30,type:'legit',phish:false,time:'09:05',from:{n:'Hyper365',a:'billing@hyper365.com'},auth:'pass',
+ subj:'Vaše předplatné se obnoví 1. 11.',
+ body:`Dobrý den,\n\nvaše firemní předplatné Hyper365 Business se 1. 11. automaticky obnoví. Fakturu najdete ve firemním portálu. Pokud nechcete nic měnit, nemusíte dělat nic.\n\n[[https://portal.hyper365.com/billing|Otevřít portál|ok]]\n\nTým Hyper365`,clues:{},
+ why:'Oznámení z hyper365.com s ověřením, bez tlaku a bez telefonního čísla. Fakturu najdeš po přihlášení ve firemním portálu.',
+ safe:{title:'Hyper365 – fakturace',text:'Plán: Business. Další obnovení 1. 11. Faktura ke stažení.'}}
+];
+MAILS.forEach(m=>{if(!m.clues)m.clues={}});
+const BYID=Object.fromEntries(MAILS.map(m=>[m.id,m]));
+
+const BADGES=[
+{id:'first',n:'První úlovek',d:'Správně nahlas první phishing.'},
+{id:'clean',n:'Bezchybná směna',d:'Dokonči směnu bez chyby a bez otevření podezřelého odkazu.'},
+{id:'streak8',n:'Série 8',d:'Osm správných rozhodnutí za sebou.'},
+{id:'detective',n:'Detektiv',d:'Najdi všechny stopy u pěti phishingů.'},
+{id:'nopanic',n:'Žádná paranoia',d:'Dokonči hru bez jediného falešného poplachu.'},
+{id:'nokick',n:'Nekliknu',d:'Dokonči hru bez otevření podezřelého odkazu.'},
+{id:'grad',n:'Absolvent',d:'Dokonči všech pět směn.'},
+{id:'master',n:'Mistr obrany',d:'Získej nejvyšší hodnost.'},
+{id:'collector',n:'Sběratel',d:'Odemkni všechny kapitoly příručky.'}
+];
+
+/* ---------- stav ---------- */
+let S=null;
+let UI={view:'title',tab:'lib',mread:false,justDecided:false,pending:null};
+
+function newRun(){
+  S={shift:0,money:5000,hearts:3,streak:0,it:2,order:[],res:{},marks:{},trap:{},read:{},sel:null,details:false,over:false,
+     stat:{good:0,dec:0,fp:0,miss:0,clicks:0,creds:0},sh:{wrong:0,clicks:0},snap:null,newBadges:[],start:5000};
+}
+function startShift(i){
+  S.shift=i;S.hearts=3;S.it=2;S.order=shuffle(SHIFTS[i].mails);S.res={};S.marks={};S.trap={};S.read={};S.sel=null;S.details=false;S.over=false;
+  S.sh={wrong:0,clicks:0};S.snap={money:S.money,streak:S.streak,stat:Object.assign({},S.stat)};
+}
+const cur=()=>S&&S.sel?BYID[S.sel]:null;
+const doneCount=()=>S.order.filter(id=>S.res[id]).length;
+
+/* ---------- toast & odznaky ---------- */
+function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;$('#toasts').appendChild(t);setTimeout(()=>t.remove(),3200)}
+function award(id){
+  if(P.badges[id])return;P.badges[id]=Date.now();save();
+  const b=BADGES.find(x=>x.id===id);if(S)S.newBadges.push(id);
+  toast('Nový odznak: '+b.n);sfx.ding();
+}
+
+/* ---------- vykreslování ---------- */
+const app=$('#app');
+function render(){
+  const v=UI.view;
+  if(v==='title')renderTitle();
+  else if(v==='brief')renderBrief();
+  else if(v==='game')renderGame();
+  else if(v==='shiftEnd')renderShiftEnd();
+  else if(v==='over')renderOver();
+  else if(v==='final')renderFinal();
+  else if(v==='archive')renderArchive();
+  window.scrollTo(0,0);
+}
+function topbar(extra=''){
+  return `<div class="topbar"><div class="brand"><span class="logo">${ic('hook',22)}</span>Lovec phishingu</div><div style="display:flex;gap:8px">${extra}<button class="iconbtn" data-act="mute" aria-label="${P.muted?'Zapnout zvuk':'Vypnout zvuk'}">${ic(P.muted?'mute':'sound')}</button></div></div>`;
+}
+function accOf(){return S.stat.dec?Math.round(100*S.stat.good/S.stat.dec):0}
+
+function renderTitle(){
+  const unl=Object.keys(P.unlocked).length,nb=Object.keys(P.badges).length;
+  app.innerHTML=`${topbar(`<button class="b b-ghost" data-act="archive">Příručka a odznaky</button>`)}
+  <div class="card"><div class="hero">
+    <div>
+      <div class="eyebrow">Hra proti e-mailovému phishingu</div>
+      <h1>Lovec <em>phishingu</em></h1>
+      <p class="lead">Jsi nový zaměstnanec firmy Novaterm. Pět směn, třicet zpráv a pár podvodníků mezi nimi. Rozhoduj, co nahlásit a co nechat být.</p>
+      <div class="namebox"><input id="nm" type="text" maxlength="28" placeholder="Tvoje jméno pro certifikát" value="${esc(P.name)}" autocomplete="off" aria-label="Tvoje jméno"><button class="b b-flag b-big" data-act="start">Začít první směnu</button></div>
+      <ul class="steps">
+        <li><b>1</b><span>Otevři zprávu a prohlédni si odesílatele, odkazy a přílohy.</span></li>
+        <li><b>2</b><span>Podezřelá místa označ jako stopy. Za každou správnou dostaneš bonus.</span></li>
+        <li><b>3</b><span>Rozhodni: nahlásit, nechat být, nebo se zeptat IT.</span></li>
+      </ul>
+      <div class="pstats"><div><b>${kc(P.best)}</b>nejlepší kasa</div><div><b>${P.runs}</b>odehraných her</div><div><b>${unl}/${Object.keys(TYPES).length}</b>kapitol příručky</div><div><b>${nb}/${BADGES.length}</b>odznaků</div></div>
+    </div>
+    <div class="stack" aria-hidden="true">
+      <div class="mini"><span class="pill-st p">PHISHING</span><div class="f">Podpora Hyper365</div><div class="s">Vaše heslo vyprší za 24 hodin</div><div class="u">login.hyper365-helpdesk.xyz/obnova</div></div>
+      <div class="mini"><span class="pill-st g">V POŘÁDKU</span><div class="f">Jana Nováková</div><div class="s">Zápis z porady 27. 10.</div><div class="u" style="color:var(--ok)">jana.novakova@novaterm.cz</div></div>
+      <div class="mini"><span class="pill-st p">PHISHING</span><div class="f">Pavel Horák</div><div class="s">Důvěrné – potřebuji vaši pomoc</div><div class="u">pavel.horak.novaterm@gmail.com</div></div>
+    </div>
+  </div></div>`;
+}
+
+function renderBrief(){
+  const sh=SHIFTS[S.shift];
+  const dots=SHIFTS.map((_,i)=>`<i class="${i<S.shift?'done':i===S.shift?'on':''}"></i>`).join('');
+  app.innerHTML=`${topbar()}
+  <div class="card brief">
+    <div>
+      <div class="eyebrow">Směna ${S.shift+1} z ${SHIFTS.length}</div>
+      <div class="dots">${dots}</div>
+      <h2>${esc(sh.t)}</h2>
+      <p class="lead" style="margin:0">${esc(sh.sub)}</p>
+      <div class="tip"><b>Tip na dnešek</b>${esc(sh.tip)}</div>
+      <div class="actions" style="margin-top:0"><button class="b b-flag b-big" data-act="play">Otevřít schránku</button></div>
+    </div>
+    <div>
+      <div class="sub-h">Bodování</div>
+      <ul class="rules">
+        <li><span>Nahlásit phishing</span><span class="pos">+500 Kč</span></li>
+        <li><span>Každá správná stopa</span><span class="pos">+50 Kč</span></li>
+        <li><span>Ponechat pravou zprávu</span><span class="pos">+200 Kč</span></li>
+        <li><span>Série správných (až ×1,5)</span><span class="pos">bonus</span></li>
+        <li><span>Falešný poplach</span><span class="neg">−300 Kč</span></li>
+        <li><span>Otevřít podezřelý odkaz</span><span class="neg">−500 Kč</span></li>
+        <li><span>Naletět na phishing</span><span class="neg">−1 500 Kč a ♥</span></li>
+        <li><span>Zadat údaje na falešné stránce</span><span class="neg">−2 000 Kč a ♥</span></li>
+        <li><span>Zeptat se IT (2× za směnu)</span><span class="neg">−250 Kč</span></li>
+      </ul>
+      <p style="font-size:13px;color:var(--ink-2);margin-top:10px">Máš tři životy důvěry. Pokud o všechny přijdeš, směnu opakuješ.</p>
+    </div>
+  </div>`;
+}
+
+/* --- herní obrazovka --- */
+function renderGame(){
+  const sh=SHIFTS[S.shift];
+  app.innerHTML=`<div class="win ${UI.mread?'mread':''}" id="win">
+    <div class="hud" id="hud"></div>
+    <div class="client">
+      <nav class="rail" id="rail" aria-label="Složky"></nav>
+      <section class="list" id="list" aria-label="Doručená pošta"></section>
+      <section class="read" id="read" aria-label="Čtení zprávy"></section>
+    </div>
+    <div class="status" id="status">Připraveno</div>
+  </div>`;
+  if(!S.sel&&window.innerWidth>760){S.sel=S.order[0];S.read[S.sel]=true}
+  renderHud();renderRail();renderList();renderRead();
+}
+function renderHud(){
+  const h=$('#hud');if(!h)return;const sh=SHIFTS[S.shift];
+  const mult=1+0.1*Math.min(S.streak,5);
+  let hearts='';for(let i=0;i<3;i++)hearts+=`<span class="hrt ${i<S.hearts?'on':''}">${ic('heart',18)}</span>`;
+  h.innerHTML=`<div class="t">${ic('mail',20)}Novaterm Mail <span class="sub">SMĚNA ${S.shift+1}/${SHIFTS.length} · ${esc(sh.day)}</span></div>
+    <span class="chip">Zpracováno <b>${doneCount()}/${S.order.length}</b></span>
+    <span class="chip">Kasa <b>${kc(S.money)}</b></span>
+    <span class="chip" title="Série správných rozhodnutí">Série <b>×${mult.toFixed(1).replace('.',',')}</b></span>
+    <span class="chip" title="Dotazy na IT">IT <b>${S.it}×</b></span>
+    <span class="chip" aria-label="Životy důvěry: ${S.hearts} ze 3">${hearts}</span>
+    <button class="iconbtn" data-act="mute" aria-label="Zvuk">${ic(P.muted?'mute':'sound',18)}</button>
+    <button class="iconbtn" data-act="quit" aria-label="Ukončit hru" title="Ukončit hru">${ic('home',18)}</button>`;
+}
+function renderRail(){
+  const r=$('#rail');if(!r)return;
+  const rep=S.order.filter(id=>S.res[id]&&S.res[id].act==='report').length;
+  const left=S.order.length-doneCount();
+  r.innerHTML=`<div class="f on">${ic('inbox')}Doručená pošta<em>${left}</em></div>
+    <div class="f">${ic('flag')}Nahlášené<em>${rep}</em></div>
+    <div class="f">${ic('mail')}Odeslaná pošta</div>
+    <div class="f">${ic('trash')}Koš</div>
+    <div class="me">vy@novaterm.cz</div>`;
+}
+function resBadge(r){
+  if(!r)return '';
+  if(r.act==='comp')return `<span class="st bad">Napadeno</span>`;
+  if(r.act==='it')return `<span class="st neu">IT</span>`;
+  return `<span class="st ${r.ok?'good':'bad'}">${r.act==='report'?'Nahlášeno':'Ponecháno'}</span>`;
+}
+function renderList(){
+  const l=$('#list');if(!l)return;
+  l.innerHTML=S.order.map(id=>{
+    const m=BYID[id],r=S.res[id];
+    return `<button class="li ${S.sel===id?'sel':''} ${S.read[id]?'':'unread'} ${r?'done':''}" data-act="sel" data-id="${id}">
+      <span class="av" style="--h:${hue(m.from.n)}">${esc(initials(m.from.n))}</span>
+      <span class="m"><span class="r1"><b>${esc(m.from.n)}</b><time>${m.time}</time></span><span class="sj" style="display:block">${esc(m.subj)}</span>${resBadge(r)}</span></button>`;
+  }).join('');
+}
+
+function authText(a){return a==='pass'?'prošlo (SPF a DKIM)':a==='fail'?'selhalo – odesílatel nemusí být pravý':'neověřeno'}
+function qrSvg(seed){
+  let h=0;for(const c of seed)h=(h*31+c.charCodeAt(0))>>>0;
+  const n=21,rnd=()=>{h=(h*1664525+1013904223)>>>0;return h/4294967296};
+  const fin=(x,y)=>{for(const [ox,oy] of [[0,0],[14,0],[0,14]]){const dx=x-ox,dy=y-oy;if(dx>=0&&dx<7&&dy>=0&&dy<7)return (dx===0||dx===6||dy===0||dy===6||(dx>=2&&dx<=4&&dy>=2&&dy<=4))?1:0;}return -1};
+  let r='';for(let y=0;y<n;y++)for(let x=0;x<n;x++){const f=fin(x,y);const on=f===-1?rnd()>.5:f===1;if(f===-1&&on||f===1)r+=`<rect x="${x}" y="${y}" width="1" height="1"/>`}
+  return `<svg viewBox="-1 -1 23 23" shape-rendering="crispEdges" role="img" aria-label="QR kód"><rect x="-1" y="-1" width="23" height="23" fill="#fff"/><g fill="#111">${r}</g></svg>`;
+}
+function richBody(m,cls){
+  let li=0;
+  return m.body.split('\n\n').map(p=>{
+    const quote=p.startsWith('> ');
+    let h=esc(quote?p.slice(2):p).replace(/\n/g,'<br>');
+    h=h.replace(/\[\[([^|\]]+)\|([^|\]]*)(?:\|([^|\]]*))?(?:\|([^|\]]*))?\]\]/g,(_,url,txt,k,st)=>{
+      const key=(k&&m.clues[k])?k:'l'+(li++);
+      const a=`data-act="link" data-url="${url}" data-t="${txt}" data-c="${key}"`;
+      if(st==='qr')return `<button type="button" class="qr mk ${cls(key)}" ${a}>${qrSvg(url)}<span>Naskenovat kód</span></button>`;
+      return `<a href="#" class="lnk mk ${st==='btn'?'lbtn':''} ${cls(key)}" ${a}>${txt}</a>`;
+    });
+    h=h.replace(/\{\{(\w+)\|([^}]*)\}\}/g,(_,k,t)=>`<span class="mk ${cls(k)}" data-act="mark" data-c="${k}">${t}</span>`);
+    return quote?`<blockquote>${h}</blockquote>`:`<p>${h}</p>`;
+  }).join('');
+}
+function fbOutcome(m,r){
+  if(r.act==='comp')return {c:'bad',t:'Údaje odeslány útočníkům',stamp:'NAPADENO'};
+  if(r.act==='it')return {c:'neu',t:'IT odpovídá: '+(m.phish?'je to phishing':'zpráva je v pořádku'),stamp:'IT'};
+  if(r.act==='report')return m.phish?{c:'good',t:'Správně, je to phishing',stamp:'NAHLÁŠENO'}:{c:'warn',t:'Falešný poplach, zpráva byla pravá',stamp:'POPLACH'};
+  return m.phish?{c:'bad',t:'Past sklapla, byl to phishing',stamp:'NALETĚL'}:{c:'good',t:'Správně, zpráva je v pořádku',stamp:'V POŘÁDKU'};
+}
+function fbHtml(m,r,marks){
+  const o=fbOutcome(m,r);
+  const keys=Object.keys(m.clues);
+  const fine=marks.filter(k=>!m.clues[k]).length;
+  const ledger=r.lines.map(l=>`<div><span>${esc(l[0])}</span><b class="${l[1]>=0?'pos':'neg'}">${sg(l[1])}</b></div>`).join('')+`<div class="tot"><span>Celkem</span><b class="${r.pts>=0?'pos':'neg'}">${sg(r.pts)}</b></div>`;
+  const clues=keys.length?`<div><div class="sub-h">${m.phish?'Co prozradilo podvod':'Stopy'}</div><ul class="clues">${keys.map(k=>{const f=marks.includes(k);return `<li class="${f?'f':'m'}"><span class="ck">${f?ic('check',13):''}</span><span>${esc(m.clues[k])}</span></li>`}).join('')}</ul></div>`:'';
+  return `<div class="fb ${o.c}" id="fb"><div class="fb-h">${ic(o.c==='good'?'check':o.c==='neu'?'help':'x',24)}<h3>${esc(o.t)}</h3></div>
+    <div class="fb-b"><p>${esc(m.why)}</p>${clues}${fine&&m.phish?`<p style="font-size:13px;color:var(--ink-2)">${fine} označených míst bylo v pořádku.</p>`:''}
+    <div><div class="sub-h">Bodování</div><div class="ledger">${ledger}</div></div></div></div>`;
+}
+function renderRead(){
+  const el=$('#read');if(!el)return;const m=cur();
+  if(!m){el.innerHTML=`<div class="empty">${ic('mail',44)}<h3>Vyber zprávu</h3><p style="margin-top:6px">Klikni na zprávu v doručené poště. Zkontroluj odesílatele, odkazy a přílohy, než se rozhodneš.</p></div>`;return}
+  const prev=el.querySelector('.rbody');const sc=prev?prev.scrollTop:0;
+  const res=S.res[m.id],marks=S.marks[m.id]||[];
+  const cls=k=>{const on=marks.includes(k),isC=!!m.clues[k];
+    if(!res)return on?'on':'';
+    return isC?(on?'hit':'miss'):(on?'fine':'')};
+  const cl=k=>cls(k)||'';
+  const a=m.from.a;
+  const hrow=(k,label,val,extra='')=>`<div class="hrow mk ${cl(k)}" data-act="mark" data-c="${k}"><span>${label}</span>${val}</div>`;
+  const hd=S.details?`<div class="hdrs">${hrow('h_from','Od',`<code>${esc(a)}</code>`)}${m.reply?hrow('h_reply','Odpovědi na',`<code>${esc(m.reply)}</code>`):''}${hrow('h_auth','Ověření',`<b class="auth-${m.auth}">${authText(m.auth)}</b>`)}</div>`:'';
+  const atts=(m.att||[]).map((x,i)=>`<button type="button" class="att mk ${cl('att'+i)}" data-act="att" data-i="${i}" data-c="att${i}">${ic('clip',16)}<span>${esc(x.name)}</span><small>${x.size}</small></button>`).join('');
+  const o=res?fbOutcome(m,res):null;
+  let actions='';
+  if(!res){
+    actions=S.over?`<div class="ractions"><p style="font-size:14px;color:var(--bad)">Důvěra firmy klesla na nulu.</p></div>`:
+    `<div class="ractions"><div class="hint"><span>Klikni na jméno, odkaz, přílohu nebo text, který ti nesedí, a označ ho jako stopu.</span><span>Stop: <b>${marks.length}</b></span></div>
+    <div class="abtns"><button class="b b-flag" data-act="report">${ic('flag')}Nahlásit phishing</button><button class="b b-ok" data-act="ok">${ic('check')}Je v pořádku</button><button class="b b-ghost" data-act="it" ${S.it?'':'disabled'}>${ic('help')}Zeptat se IT <small>−250 Kč · ${S.it}×</small></button></div></div>`;
+  }else{
+    const last=doneCount()===S.order.length;
+    const lbl=S.hearts<=0?'Konec směny':last?'Uzavřít směnu':'Další zpráva';
+    actions=`<div class="ractions"><div class="abtns"><button class="b b-flag" data-act="next">${lbl}${ic('back',16).replace('<svg','<svg style="transform:scaleX(-1)"')}</button></div></div>`;
+  }
+  el.innerHTML=`<div class="rhead"><button class="iconbtn back-btn" data-act="back" aria-label="Zpět na seznam">${ic('back')}</button><h2>${esc(m.subj)}</h2></div>
+  <div class="rbody">${res?`<div class="stamp ${o.c==='neu'?'neu':o.c}">${o.stamp}</div>`:''}
+    <div class="sender"><span class="av" style="--h:${hue(m.from.n)}">${esc(initials(m.from.n))}</span>
+      <div class="sinfo"><button class="sname" data-act="details" data-addr="${esc(a)}">${esc(m.from.n)}</button><div class="sto">komu: vy@novaterm.cz · dnes ${m.time}</div></div>
+      <button class="linkbtn" data-act="details">${S.details?'Skrýt detaily':'Technické detaily'}</button></div>
+    ${hd}<div class="mail-body">${richBody(m,cl)}${atts?`<div class="atts">${atts}</div>`:''}</div>
+    ${res?fbHtml(m,res,marks):''}</div>${actions}`;
+  const nb=el.querySelector('.rbody');
+  if(UI.justDecided){UI.justDecided=false;const f=$('#fb');if(f)requestAnimationFrame(()=>f.scrollIntoView({block:'nearest',behavior:'smooth'}))}
+  else nb.scrollTop=sc;
+}
+
+/* ---------- herní logika ---------- */
+function ts(type,ok){const t=P.ts[type]||(P.ts[type]={ok:0,n:0});t.n++;if(ok)t.ok++;P.unlocked[type]=true}
+function decide(act){
+  const m=cur();if(!m||S.res[m.id]||S.over)return;
+  const marks=S.marks[m.id]||[];
+  const found=marks.filter(k=>m.clues[k]).length,total=Object.keys(m.clues).length;
+  const mult=1+0.1*Math.min(S.streak,5);
+  const r={act,lines:[],pts:0,ok:null};
+  const gainMult=(base,label)=>{const bonus=Math.round(base*(mult-1)/10)*10;r.lines.push([label,base]);if(bonus)r.lines.push([`Série ×${mult.toFixed(1).replace('.',',')}`,bonus]);return base+bonus};
+  if(act==='it'){
+    if(!S.it)return;S.it--;r.pts=-250;r.lines.push(['Dotaz na IT',-250]);
+    P.unlocked[m.type]=true;sfx.click();
+  }else{
+    const correct=(act==='report')===m.phish;r.ok=correct;S.stat.dec++;
+    if(correct){
+      if(m.phish){
+        let pts=gainMult(500,'Správné nahlášení');
+        if(found){const c=found*50;r.lines.splice(1,0,[`Stopy (${found}/${total})`,c]);pts+=c}
+        r.pts=pts;
+        if(found===total&&total>0)P.fullClues++;
+        award('first');
+      }else{r.pts=gainMult(200,'Pravou zprávu ponechat')}
+      S.streak++;S.stat.good++;sfx.good();
+    }else{
+      S.streak=0;
+      if(act==='report'){r.pts=-300;r.lines.push(['Falešný poplach',-300]);S.stat.fp++}
+      else{r.pts=-1500;r.lines.push(['Naletěl jsi (ztráta důvěry)',-1500]);S.hearts--;S.stat.miss++;r.heart=true}
+      S.sh.wrong++;sfx.bad();
+    }
+    ts(m.type,correct);
+  }
+  S.money+=r.pts;S.res[m.id]=r;
+  if(S.hearts<=0)S.over=true;
+  if(S.streak>=8)award('streak8');
+  if(P.fullClues>=5)award('detective');
+  if(Object.keys(TYPES).every(k=>P.unlocked[k]))award('collector');
+  save();afterResolve(r.heart);
+}
+function compromise(m){
+  const r={act:'comp',ok:false,pts:-2000,lines:[['Údaje odeslány útočníkům',-2000]],heart:true};
+  S.money-=2000;S.hearts--;S.streak=0;S.sh.wrong++;S.stat.creds++;S.stat.dec++;
+  ts(m.type,false);S.res[m.id]=r;if(S.hearts<=0)S.over=true;sfx.bad();save();afterResolve(true);
+}
+function afterResolve(lostHeart){
+  UI.justDecided=true;renderHud();renderRail();renderList();renderRead();
+  if(lostHeart){const hs=document.querySelectorAll('#hud .hrt');if(hs[S.hearts])hs[S.hearts].classList.add('lost')}
+}
+function mark(key){
+  const m=cur();if(!m||S.res[m.id]||S.over)return;
+  const a=S.marks[m.id]||(S.marks[m.id]=[]);const i=a.indexOf(key);
+  if(i>=0)a.splice(i,1);else a.push(key);
+  sfx.mark();renderRead();
+}
+function select(id){
+  S.sel=id;S.read[id]=true;S.details=false;UI.mread=true;
+  const w=$('#win');if(w)w.classList.add('mread');
+  renderList();renderRead();
+}
+function next(){
+  if(S.hearts<=0){UI.view='over';render();return}
+  const un=S.order.filter(id=>!S.res[id]);
+  if(!un.length){endShift();return}
+  const i=S.order.indexOf(S.sel);
+  const after=S.order.slice(i+1).concat(S.order.slice(0,i)).find(id=>!S.res[id]);
+  select(after||un[0]);
+}
+function endShift(){
+  const perfect=S.sh.wrong===0&&S.sh.clicks===0;
+  const bonuses=[];
+  if(perfect){bonuses.push(['Bezchybná směna',1000]);award('clean')}
+  if(S.hearts>0)bonuses.push([`Zbývající důvěra (${S.hearts}×)`,S.hearts*200]);
+  const tot=bonuses.reduce((s,b)=>s+b[1],0);S.money+=tot;S.bonuses=bonuses;S.bonusTot=tot;
+  save();
+  UI.view='shiftEnd';render();
+}
+function finishRun(){
+  P.runs++;P.cleared++;P.best=Math.max(P.best,S.money);
+  const acc=accOf();S.acc=acc;S.rank=rankOf(acc,S.stat.creds);
+  award('grad');if(S.stat.fp===0)award('nopanic');if(S.stat.clicks===0&&S.stat.creds===0)award('nokick');if(S.rank.id==='master')award('master');
+  save();UI.view='final';render();
+}
+function rankOf(acc,creds){
+  if(acc>=95&&creds===0)return {id:'master',t:'Mistr obrany',d:'Phishing tě nezaskočí. Tvůj tým může spát klidně.'};
+  if(acc>=80)return {id:'hunter',t:'Lovec phishingu',d:'Většinu pastí jsi odhalil a víš, kam se dívat.'};
+  if(acc>=60)return {id:'guard',t:'Strážce schránky',d:'Dobrý základ. Zkus příští hru věnovat víc času technickým detailům.'};
+  return {id:'intern',t:'Stážista',d:'Začátky bývají těžké. Projdi si příručku a zkus to znovu.'};
+}
+
+/* ---------- odkazy, přílohy a pasti ---------- */
+function hostBold(u){const mm=u.match(/^(https?:\/\/)([^\/]+)(.*)$/);return mm?`${esc(mm[1])}<b>${esc(mm[2])}</b>${esc(mm[3])}`:esc(u)}
+function openSheet(html){$('#modal').innerHTML=`<div class="back" id="backdrop"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`;const b=$('#modal .b');if(b)b.focus()}
+function closeModal(){$('#modal').innerHTML=''}
+function linkSheet(d){
+  const m=cur();if(!m||S.res[m.id]||S.over)return;
+  const isAtt=d.kind==='att';
+  const marked=(S.marks[m.id]||[]).includes(d.key);
+  UI.pending=d;
+  openSheet(`<h3>${isAtt?'Příloha':'Odkaz'}</h3>
+    <p style="color:var(--ink-2);font-size:14px">${isAtt?'Soubor':'Zobrazený text'}: „${esc(d.text)}“</p>
+    ${isAtt?`<code class="url">${esc(d.url)}</code>`:`<div class="sub-h" style="margin:0">Odkaz vede na</div><code class="url">${hostBold(d.url)}</code>`}
+    <div class="srow"><button class="b b-ghost" data-act="s-open">${isAtt?'Otevřít přílohu':'Otevřít odkaz'}</button><button class="b ${marked?'b-ghost':'b-flag'}" data-act="s-mark">${marked?'Odznačit stopu':'Označit jako podezřelé'}</button><button class="b b-ghost" data-act="mclose">Zrušit</button></div>`);
+  sfx.click();
+}
+function browser(url,inner){
+  $('#modal').innerHTML=`<div class="back"><div class="bwin" role="dialog" aria-modal="true"><div class="btop"><span style="color:#44505d">${ic('lock',14)}</span><span class="burl">${esc(url)}</span><button data-act="trap-close" aria-label="Zavřít okno">${ic('x',18)}</button></div><div class="sim">Cvičná simulace – nic se nikam neodesílá.</div><div class="bpage">${inner}</div></div></div>`;
+}
+function openPending(){
+  const d=UI.pending,m=cur();if(!d||!m)return;
+  if(m.phish&&m.trap){
+    const t=S.trap[m.id]||(S.trap[m.id]={});
+    if(!t.clicked){t.clicked=true;S.money-=500;S.streak=0;S.sh.clicks++;S.stat.clicks++;renderHud()}
+    const k=m.trap.kind,b=esc(m.trap.brand);
+    let inner='';
+    if(k==='login')inner=`<div class="fbrand"><i></i>${b}</div><h3>Přihlaste se</h3><label for="f1">E-mail</label><input id="f1" value="vy@novaterm.cz" readonly><label for="f2">Heslo</label><input id="f2" type="password" placeholder="Vaše heslo" autocomplete="off"><button class="fbtn" data-act="trap-submit">Přihlásit se</button><button class="linkbtn" data-act="trap-close" style="justify-self:start;color:#44505d">Zavřít okno</button>`;
+    else if(k==='card')inner=`<div class="fbrand"><i></i>${b}</div><h3>Zaplaťte ${esc(m.trap.amount)}</h3><label for="c1">Číslo karty</label><input id="c1" placeholder="1234 5678 9012 3456" autocomplete="off"><div class="fgrid"><div><label for="c2">Platnost</label><input id="c2" placeholder="MM/RR" autocomplete="off"></div><div><label for="c3">CVV</label><input id="c3" placeholder="123" autocomplete="off"></div></div><button class="fbtn" data-act="trap-submit">Zaplatit ${esc(m.trap.amount)}</button><button class="linkbtn" data-act="trap-close" style="justify-self:start;color:#44505d">Zavřít okno</button>`;
+    else inner=`<div class="fbrand"><i></i>${b}</div><div class="docbar"><span>Zabezpečené zobrazení: soubor pochází z internetu.</span><button data-act="trap-submit">Povolit úpravy a makra</button></div><div class="doc"><i style="width:60%"></i><i></i><i style="width:88%"></i><i style="width:74%"></i><i></i></div><button class="linkbtn" data-act="trap-close" style="justify-self:start;color:#44505d">Zavřít soubor</button>`;
+    browser(d.kind==='att'?'Soubor: '+d.url:d.url,inner);
+  }else{
+    const s=m.safe||{title:d.text,text:'Stránka se načetla bez problémů.'};
+    browser(d.kind==='att'?'Soubor: '+d.text:d.url,`<div class="safe-ok">${ic('check',22)}Stránka je v pořádku</div><h3>${esc(s.title)}</h3><p style="color:#44505d">${esc(s.text)}</p><button class="fbtn" data-act="trap-close">Zavřít okno</button>`);
+  }
+}
+function closeTrap(){
+  const m=cur();closeModal();
+  if(m&&m.phish&&S.trap[m.id]&&S.trap[m.id].clicked&&!S.res[m.id]){
+    toast('Zavřel jsi stránku včas. Otevření podezřelého odkazu ale stálo 500 Kč.');sfx.bad();
+  }
+  renderRead();
+}
+function submitTrap(){const m=cur();closeModal();if(m&&!S.res[m.id])compromise(m)}
+
+/* ---------- konec směny, prohra, výsledky ---------- */
+function outcomeRow(id){
+  const m=BYID[id],r=S.res[id];const o=fbOutcome(m,r);
+  const col=o.c==='good'?'good':o.c==='bad'?'bad':o.c==='warn'?'warn':'neu';
+  return `<li><span class="st ${col}" style="align-self:start;white-space:nowrap">${o.stamp}</span><div><div class="sj">${esc(m.subj)}</div><p>${esc(m.why)}</p></div></li>`;
+}
+function renderShiftEnd(){
+  const good=S.order.filter(id=>S.res[id]&&S.res[id].ok).length;
+  const nb=S.newBadges.map(id=>BADGES.find(b=>b.id===id).n);
+  app.innerHTML=`${topbar()}<div class="card">
+    <div class="eyebrow">Směna ${S.shift+1} z ${SHIFTS.length} hotová</div>
+    <h2 style="font-size:clamp(28px,5vw,46px);font-weight:800;margin-top:6px">${S.sh.wrong===0&&S.sh.clicks===0?'Čistá práce':'Směna za tebou'}</h2>
+    <div class="sum-grid"><div class="kpi"><b>${good}/${S.order.length}</b><span>správných rozhodnutí</span></div><div class="kpi"><b>${kc(S.money)}</b><span>kasa firmy</span></div><div class="kpi"><b>${S.hearts}/3</b><span>zbývající důvěra</span></div><div class="kpi"><b>${accOf()} %</b><span>úspěšnost celkem</span></div></div>
+    ${S.bonuses&&S.bonuses.length?`<div class="ledger" style="max-width:380px;margin-bottom:18px">${S.bonuses.map(b=>`<div><span>${esc(b[0])}</span><b class="pos">${sg(b[1])}</b></div>`).join('')}</div>`:''}
+    ${nb.length?`<p style="margin-bottom:12px"><b>Nové odznaky:</b> ${nb.map(esc).join(', ')}</p>`:''}
+    <div class="sub-h">Co ses naučil</div><ul class="rowlist">${S.order.map(outcomeRow).join('')}</ul>
+    <div class="actions"><button class="b b-flag b-big" data-act="nextshift">${S.shift>=SHIFTS.length-1?'Převzít certifikát':'Další směna'}</button></div></div>`;
+  S.newBadges=[];
+}
+function renderOver(){
+  const bad=S.order.filter(id=>S.res[id]&&!S.res[id].ok&&S.res[id].act!=='it');
+  app.innerHTML=`${topbar()}<div class="card">
+    <div class="eyebrow">Směna ${S.shift+1} přerušena</div>
+    <h2 style="font-size:clamp(28px,5vw,46px);font-weight:800;margin:6px 0 10px">Vedení ti dnes důvěru nedalo</h2>
+    <p class="lead" style="margin-top:0">Došly ti životy důvěry. V reálném světě by to znamenalo napadenou firmu. Tady si můžeš směnu zkusit znovu.</p>
+    <div class="sub-h">Kde to selhalo</div><ul class="rowlist">${bad.map(outcomeRow).join('')}</ul>
+    <div class="actions"><button class="b b-flag b-big" data-act="retry">Opakovat směnu</button><button class="b b-ghost b-big" data-act="title">Do menu</button></div></div>`;
+}
+function resultText(){return `Lovec phishingu: ${S.rank.t}, kasa ${kc(S.money)}, úspěšnost ${S.acc} %. Zvládneš to líp?`}
+function renderFinal(){
+  const nb=S.newBadges.map(id=>BADGES.find(b=>b.id===id).n);
+  const name=P.name||'Neznámý lovec';
+  const d=new Date().toLocaleDateString('cs-CZ');
+  app.innerHTML=`${topbar()}<div class="card">
+    <div class="eyebrow">Všechny směny dokončeny</div>
+    <div class="cert"><div class="eyebrow">Certifikát</div><div class="nm" style="margin-top:8px">${esc(name)}</div><p style="color:var(--ink-2)">získává hodnost</p><h2>${esc(S.rank.t)}</h2><p style="max-width:44ch;margin:0 auto 10px">${esc(S.rank.d)}</p><p class="eyebrow">${d} · Novaterm s.r.o.</p></div>
+    <div class="sum-grid"><div class="kpi"><b>${kc(S.money)}</b><span>kasa firmy</span></div><div class="kpi"><b>${S.acc} %</b><span>úspěšnost</span></div><div class="kpi"><b>${S.stat.fp}</b><span>falešných poplachů</span></div><div class="kpi"><b>${S.stat.clicks+S.stat.creds}</b><span>otevřených pastí</span></div></div>
+    ${nb.length?`<p style="margin-bottom:12px"><b>Nové odznaky:</b> ${nb.map(esc).join(', ')}</p>`:''}
+    <div class="sub-h">Tvůj výsledek ke sdílení</div>
+    <div class="copybox"><input id="cp" readonly value="${esc(resultText())}" aria-label="Text výsledku"><button class="b b-ghost" data-act="copy">Kopírovat</button></div>
+    <div class="actions"><button class="b b-flag b-big" data-act="start">Hrát znovu</button><button class="b b-ghost b-big" data-act="archive">Příručka a statistiky</button></div></div>`;
+  S.newBadges=[];
+}
+function renderArchive(){
+  const tabs=[['lib','Příručka'],['badges','Odznaky'],['stats','Statistiky']];
+  let body='';
+  if(UI.tab==='lib'){
+    body=`<div class="lib">${Object.entries(TYPES).map(([k,t])=>P.unlocked[k]?
+      `<article class="lcard"><div style="display:flex;gap:10px;align-items:center"><span class="gl">${t.g}</span><h3>${esc(t.n)}</h3></div><p style="font-size:14px">${esc(t.s)}</p><ul>${t.signs.map(s=>`<li>${esc(s)}</li>`).join('')}</ul><div class="do"><b>Co dělat:</b> ${esc(t.do)}</div></article>`:
+      `<article class="lcard lock"><div style="display:flex;gap:10px;align-items:center"><span class="gl">?</span><h3>Zamčená kapitola</h3></div><p style="font-size:14px">Odemkne se, když se v poště poprvé setkáš s tímto typem zprávy.</p></article>`).join('')}</div>`;
+  }else if(UI.tab==='badges'){
+    body=`<div class="bgrid">${BADGES.map(b=>`<div class="badge ${P.badges[b.id]?'':'off'}"><span class="gl">${P.badges[b.id]?'★':'–'}</span><div><b>${esc(b.n)}</b><span>${esc(b.d)}</span></div></div>`).join('')}</div>`;
+  }else{
+    const rows=Object.entries(P.ts).filter(([,t])=>t.n);
+    body=`<div class="sum-grid"><div class="kpi"><b>${P.runs}</b><span>odehraných her</span></div><div class="kpi"><b>${kc(P.best)}</b><span>nejlepší kasa</span></div><div class="kpi"><b>${Object.keys(P.badges).length}/${BADGES.length}</b><span>odznaků</span></div></div>
+    <div class="sub-h">Úspěšnost podle typu zprávy</div>${rows.length?rows.map(([k,t])=>{const p=Math.round(100*t.ok/t.n);return `<div class="trow"><span>${esc(TYPES[k]?TYPES[k].n:k)}</span><div class="bar"><i style="width:${p}%"></i></div><b style="font-variant-numeric:tabular-nums;text-align:right">${p} %</b></div>`}).join(''):'<p style="color:var(--ink-2)">Zatím žádná data. Odehraj první směnu.</p>'}
+    <div class="actions"><button class="b b-ghost" data-act="reset">${UI.confirmReset?'Opravdu smazat? Klikni znovu':'Smazat uložený postup'}</button></div>`;
+  }
+  app.innerHTML=`${topbar(`<button class="b b-ghost" data-act="title">${ic('back',16)}Zpět</button>`)}<div class="card"><h2 style="font-size:clamp(28px,5vw,44px);font-weight:800;margin-bottom:10px">Archiv lovce</h2>
+    <div class="tabs" role="tablist">${tabs.map(t=>`<button class="tab ${UI.tab===t[0]?'on':''}" role="tab" aria-selected="${UI.tab===t[0]}" data-act="tab" data-tab="${t[0]}">${t[1]}</button>`).join('')}</div>${body}</div>`;
+}
+
+/* ---------- události ---------- */
+const H={
+  start(){const n=$('#nm');if(n){P.name=n.value.trim();save()}newRun();startShift(0);UI.view='brief';render()},
+  play(){UI.view='game';UI.mread=false;render()},
+  nextshift(){if(S.shift>=SHIFTS.length-1){finishRun();return}startShift(S.shift+1);UI.view='brief';render()},
+  retry(){S.money=S.snap.money;S.streak=S.snap.streak;S.stat=Object.assign({},S.snap.stat);startShift(S.shift);UI.view='game';UI.mread=false;render()},
+  title(){UI.view='title';UI.confirmReset=false;render()},
+  quit(){openSheet(`<h3>Ukončit hru?</h3><p style="color:var(--ink-2)">Rozehraný postup se neukládá. Odznaky a příručka zůstanou.</p><div class="srow"><button class="b b-flag" data-act="title-go">Ukončit</button><button class="b b-ghost" data-act="mclose">Pokračovat ve hře</button></div>`)},
+  'title-go'(){closeModal();UI.view='title';render()},
+  archive(){UI.view='archive';render()},
+  tab(t){UI.tab=t.dataset.tab;UI.confirmReset=false;renderArchive()},
+  reset(){if(!UI.confirmReset){UI.confirmReset=true;renderArchive();return}P={name:P.name,best:0,runs:0,cleared:0,unlocked:{},ts:{},badges:{},muted:P.muted,fullClues:0};save();UI.confirmReset=false;renderArchive()},
+  mute(){P.muted=!P.muted;save();if(UI.view==='game')renderHud();else render()},
+  sel(t){select(+t.dataset.id)},
+  back(){UI.mread=false;const w=$('#win');if(w)w.classList.remove('mread')},
+  details(t){if(t.classList.contains('sname')||t.classList.contains('linkbtn')){S.details=!S.details;renderRead()}},
+  mark(t){mark(t.dataset.c)},
+  link(t){linkSheet({kind:'link',url:t.dataset.url,text:t.dataset.t,key:t.dataset.c})},
+  att(t){const m=cur(),a=m.att[+t.dataset.i];linkSheet({kind:'att',url:a.name+' ('+a.size+')',text:a.name,key:t.dataset.c})},
+  's-open'(){const d=UI.pending;closeModal();if(d)UI.pending=d;openPending()},
+  's-mark'(){const d=UI.pending;closeModal();if(d)mark(d.key)},
+  mclose(){closeModal()},
+  'trap-close'(){closeTrap()},
+  'trap-submit'(){submitTrap()},
+  report(){decide('report')},ok(){decide('ok')},it(){decide('it')},
+  next(){next()},
+  copy(){const i=$('#cp');const txt=i.value;
+    const fb=()=>{i.select();toast('Text je označený, zkopíruj ho ručně.')};
+    try{navigator.clipboard.writeText(txt).then(()=>toast('Zkopírováno'),fb)}catch(e){fb()}}
+};
+document.addEventListener('click',e=>{
+  if(e.target.id==='backdrop'){closeModal();return}
+  const t=e.target.closest('[data-act]');if(!t)return;
+  const f=H[t.dataset.act];if(!f)return;
+  e.preventDefault();
+  if(t.disabled)return;
+  f(t,e);
+});
+document.addEventListener('input',e=>{if(e.target.id==='nm'){P.name=e.target.value.trim();save()}});
+function setStatus(txt,on){const s=$('#status');if(!s)return;s.textContent=txt||'Připraveno';s.classList.toggle('on',!!on)}
+document.addEventListener('mouseover',e=>{
+  const u=e.target.closest('[data-url]');
+  if(u){setStatus('→ '+u.dataset.url,true);return}
+  const a=e.target.closest('.sname');
+  if(a){setStatus('Odesílatel: '+a.dataset.addr,true)}
+});
+document.addEventListener('mouseout',e=>{if(e.target.closest('[data-url],.sname'))setStatus('')});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&$('#modal').innerHTML){closeModal();return}
+  if(UI.view!=='game'||$('#modal').innerHTML||e.target.closest('input'))return;
+  const k=e.key.toLowerCase();
+  if(k==='r')decide('report');else if(k==='o')decide('ok');else if(k==='i')decide('it');
+});
+render();
+})();
+</script>

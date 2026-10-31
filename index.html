@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="cs" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Lovec phishingu — herní simulace</title>
+    <meta
+      name="description"
+      content="Pět směn, třicet e-mailů a parta podvodníků. Zahraj si výukovou hru o rozpoznávání phishingu a získej certifikát lovce."
+    />
+    <meta name="theme-color" content="#060c14" />
+    <meta property="og:title" content="Lovec phishingu — herní simulace" />
+    <meta
+      property="og:description"
+      content="Pět směn, třicet e-mailů a parta podvodníků. Nauč se rozpoznat phishing a získej certifikát lovce."
+    />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <script>
+      try {
+        var stored = JSON.parse(localStorage.getItem('lovec-phishingu-v1'));
+        if (stored && stored.theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+      } catch (error) {
+        /* ignore */
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
